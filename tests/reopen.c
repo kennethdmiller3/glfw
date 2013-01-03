@@ -41,17 +41,9 @@
 static GLFWwindow window_handle = NULL;
 static GLboolean closed = GL_FALSE;
 
-static const char* get_mode_name(int mode)
+static void error_callback(int error, const char* description)
 {
-    switch (mode)
-    {
-        case GLFW_WINDOWED:
-            return "windowed";
-        case GLFW_FULLSCREEN:
-            return "fullscreen";
-        default:
-            return "unknown";
-    }
+    fprintf(stderr, "Error: %s\n", description);
 }
 
 static void window_size_callback(GLFWwindow window, int width, int height)
@@ -80,24 +72,15 @@ static void key_callback(GLFWwindow window, int key, int action)
     }
 }
 
-static GLboolean open_window(int width, int height, int mode)
+static GLboolean open_window(int width, int height, GLFWmonitor monitor)
 {
     double base;
 
-    if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
-        return GL_FALSE;
-    }
-
     base = glfwGetTime();
 
-    window_handle = glfwCreateWindow(width, height, mode, "Window Re-opener", NULL);
+    window_handle = glfwCreateWindow(width, height, "Window Re-opener", monitor, NULL);
     if (!window_handle)
-    {
-        fprintf(stderr, "Failed to open %s mode GLFW window: %s\n", get_mode_name(mode), glfwErrorString(glfwGetError()));
         return GL_FALSE;
-    }
 
     glfwMakeContextCurrent(window_handle);
     glfwSwapInterval(1);
@@ -107,7 +90,7 @@ static GLboolean open_window(int width, int height, int mode)
     glfwSetKeyCallback(window_handle, key_callback);
 
     printf("Opening %s mode window took %0.3f seconds\n",
-           get_mode_name(mode),
+           monitor ? "fullscreen" : "windowed",
            glfwGetTime() - base);
 
     return GL_TRUE;
@@ -121,17 +104,25 @@ static void close_window(void)
     window_handle = NULL;
 
     printf("Closing window took %0.3f seconds\n", glfwGetTime() - base);
-
-    glfwTerminate();
 }
 
 int main(int argc, char** argv)
 {
     int count = 0;
 
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
+
     for (;;)
     {
-        if (!open_window(640, 480, (count & 1) ? GLFW_FULLSCREEN : GLFW_WINDOWED))
+        GLFWmonitor monitor = NULL;
+
+        if (count & 1)
+            monitor = glfwGetPrimaryMonitor();
+
+        if (!open_window(640, 480, monitor))
         {
             glfwTerminate();
             exit(EXIT_FAILURE);
@@ -170,5 +161,7 @@ int main(int argc, char** argv)
 
         count++;
     }
+
+    glfwTerminate();
 }
 

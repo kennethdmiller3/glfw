@@ -63,34 +63,35 @@ static ParamGL gl_params[] =
 
 static ParamGLFW glfw_params[] =
 {
-    { GLFW_REFRESH_RATE, "refresh rate" },
-    { GLFW_OPENGL_VERSION_MAJOR, "OpenGL major" },
-    { GLFW_OPENGL_VERSION_MINOR, "OpenGL minor" },
+    { GLFW_CONTEXT_VERSION_MAJOR, "Context version major" },
+    { GLFW_CONTEXT_VERSION_MINOR, "Context version minor" },
     { GLFW_OPENGL_FORWARD_COMPAT, "OpenGL forward compatible" },
     { GLFW_OPENGL_DEBUG_CONTEXT, "OpenGL debug context" },
     { GLFW_OPENGL_PROFILE, "OpenGL profile" },
     { 0, NULL }
 };
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 int main(void)
 {
     int i, width, height;
     GLFWwindow window;
 
+    glfwSetErrorCallback(error_callback);
+
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
-    }
 
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
-    window = glfwCreateWindow(640, 480, GLFW_WINDOWED, "Defaults", NULL);
+    window = glfwCreateWindow(640, 480, "Defaults", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
-
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
     }
 

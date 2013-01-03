@@ -36,7 +36,7 @@
 // This path may need to be changed if you build GLFW using your own setup
 // We ship and use our own copy of eglext.h since GLFW uses fairly new
 // extensions and not all operating systems come with an up-to-date version
-#include "../support/GL/eglext.h"
+#include "../support/EGL/eglext.h"
 
 // Do we have support for dlopen/dlsym?
 #if defined(_GLFW_HAS_DLOPEN)
@@ -48,14 +48,14 @@
 #if defined(_GLFW_HAS_EGLGETPROCADDRESS)
  #define _glfw_eglGetProcAddress(x) eglGetProcAddress(x)
 #elif defined(_GLFW_HAS_DLOPEN)
- #define _glfw_eglGetProcAddress(x) dlsym(_glfwLibrary.EGL.libEGL, x)
+ #define _glfw_eglGetProcAddress(x) dlsym(_glfw.egl.libEGL, x)
  #define _GLFW_DLOPEN_LIBEGL
 #else
  #error "No OpenGL entry point retrieval mechanism was enabled"
 #endif
 
-#define _GLFW_PLATFORM_CONTEXT_STATE        _GLFWcontextEGL EGL
-#define _GLFW_PLATFORM_LIBRARY_OPENGL_STATE _GLFWlibraryEGL EGL
+#define _GLFW_PLATFORM_CONTEXT_STATE        _GLFWcontextEGL egl
+#define _GLFW_PLATFORM_LIBRARY_OPENGL_STATE _GLFWlibraryEGL egl
 
 
 //========================================================================
@@ -83,7 +83,7 @@ typedef struct _GLFWcontextEGL
 typedef struct _GLFWlibraryEGL
 {
     EGLDisplay      display;
-    EGLint          majorVersion, minorVersion;
+    EGLint          versionMajor, versionMinor;
 
     GLboolean       KHR_create_context;
 

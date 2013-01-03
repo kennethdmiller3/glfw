@@ -48,14 +48,14 @@ GLFWAPI void glfwSetGamma(float gamma)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
     if (gamma <= 0.f)
     {
-        _glfwSetError(GLFW_INVALID_VALUE,
-                      "glfwSetGamma: Gamma value must be greater than zero");
+        _glfwInputError(GLFW_INVALID_VALUE,
+                        "Gamma value must be greater than zero");
         return;
     }
 
@@ -91,11 +91,11 @@ GLFWAPI void glfwGetGammaRamp(GLFWgammaramp* ramp)
 {
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
-    *ramp = _glfwLibrary.currentRamp;
+    *ramp = _glfw.currentRamp;
 }
 
 
@@ -107,12 +107,12 @@ GLFWAPI void glfwSetGammaRamp(const GLFWgammaramp* ramp)
 {
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
     _glfwPlatformSetGammaRamp(ramp);
-    _glfwLibrary.currentRamp = *ramp;
-    _glfwLibrary.rampChanged = GL_TRUE;
+    _glfw.currentRamp = *ramp;
+    _glfw.rampChanged = GL_TRUE;
 }
 

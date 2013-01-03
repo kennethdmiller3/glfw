@@ -56,6 +56,11 @@ static void toggle_cursor(GLFWwindow window)
     }
 }
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static void cursor_position_callback(GLFWwindow window, int x, int y)
 {
     printf("Cursor moved to: %i %i (%i %i)\n", x, y, x - cursor_x, y - cursor_y);
@@ -92,7 +97,7 @@ static void window_size_callback(GLFWwindow window, int width, int height)
 
 static GLboolean open_window(void)
 {
-    window_handle = glfwCreateWindow(640, 480, GLFW_WINDOWED, "Peter Detector", NULL);
+    window_handle = glfwCreateWindow(640, 480, "Peter Detector", NULL, NULL);
     if (!window_handle)
         return GL_FALSE;
 
@@ -111,23 +116,20 @@ static GLboolean open_window(void)
 
 int main(void)
 {
+    glfwSetErrorCallback(error_callback);
+
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
-    }
 
     if (!open_window())
     {
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
-
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
 
-    while (!glfwGetWindowParam(window_handle, GLFW_CLOSE_REQUESTED))
+    while (!glfwGetWindowParam(window_handle, GLFW_SHOULD_CLOSE))
     {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -139,8 +141,6 @@ int main(void)
             glfwDestroyWindow(window_handle);
             if (!open_window())
             {
-                fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
-
                 glfwTerminate();
                 exit(EXIT_FAILURE);
             }

@@ -267,13 +267,17 @@ version of GLFW.</p>
 
 <h3>v3.0</h3>
 <ul>
+  <li>Added <code>GLFWmonitor</code> monitor handle type and updated monitor-related functions to take a monitor handle</li>
+  <li>Added <code>glfwGetMonitors</code> and <code>glfwGetPrimaryMonitor</code> for enumerating available monitors</li>
+  <li>Added <code>glfwGetMonitorParam</code> and <code>glfwGetMonitorName</code> for retrieving monitor properties</li>
+  <li>Added <code>glfwSetMonitorCallback</code> and <code>GLFWmonitorfun</code> for notification of changes in the set of available monitors</li>
   <li>Added <code>GLFWwindow</code> window handle type and updated window-related functions and callbacks to take a window handle</li>
   <li>Added <code>glfwDefaultWindowHints</code> function for resetting all window hints to their default values</li>
   <li>Added <code>glfwMakeContextCurrent</code> function for making the context of the specified window current</li>
-  <li>Added <code>glfwGetError</code> and <code>glfwErrorString</code> error reporting functions and a number of error tokens</li>
-  <li>Added <code>glfwSetErrorCallback</code> function and <code>GLFWerrorfun</code> type for receiving more specific and/or nested errors</li>
+  <li>Added <code>glfwSetErrorCallback</code> function and <code>GLFWerrorfun</code> type for receiving error descriptions</li>
   <li>Added <code>glfwSetWindowUserPointer</code> and <code>glfwGetWindowUserPointer</code> functions for per-window user pointers</li>
   <li>Added <code>glfwGetVersionString</code> function for determining which code paths were enabled at compile time</li>
+  <li>Added <code>glfwGetWindowMonitor</code> for querying the monitor, if any, of the specified window</li>
   <li>Added <code>glfwSetWindowPosCallback</code> function and <code>GLFWwindowposfun</code> type for reciving window position events</li>
   <li>Added <code>glfwSetWindowFocusCallback</code> function and <code>GLFWwindowfocusfun</code> type for receiving window focus events</li>
   <li>Added <code>glfwSetWindowIconifyCallback</code> function and <code>GLFWwindowiconifyfun</code> type for receiving window iconification events</li>
@@ -298,11 +302,11 @@ version of GLFW.</p>
   <li>Changed buffer bit depth parameters of <code>glfwOpenWindow</code> to window hints</li>
   <li>Changed <code>glfwOpenWindow</code> and <code>glfwSetWindowTitle</code> to use UTF-8 encoded strings</li>
   <li>Changed <code>glfwGetProcAddress</code> to return a (generic) function pointer</li>
-  <li>Changed <code>glfwGetVideoModes</code> to return a dynamic, unlimited number of video modes</li>
+  <li>Changed <code>glfwGetVideoModes</code> to return a dynamic, unlimited number of video modes for the specified monitor</li>
   <li>Renamed <code>glfw.h</code> to <code>glfw3.h</code> to avoid conflicts with 2.x series</li>
   <li>Renamed <code>glfwOpenWindowHint</code> to <code>glfwWindowHint</code></li>
   <li>Renamed <code>GLFW_ACTIVE</code> to <code>GLFW_FOCUSED</code></li>
-  <li>Renamed <code>GLFW_WINDOW</code> token to <code>GLFW_WINDOWED</code></li>
+  <li>Renamed <code>GLFW_FSAA_SAMPLES</code> to <code>GLFW_SAMPLES</code></li>
   <li>Renamed <code>GLFW_WINDOW_NO_RESIZE</code> to <code>GLFW_RESIZABLE</code></li>
   <li>Renamed <code>GLFW_BUILD_DLL</code> to <code>_GLFW_BUILD_DLL</code></li>
   <li>Renamed <code>version</code> test to <code>glfwinfo</code></li>
@@ -310,12 +314,13 @@ version of GLFW.</p>
   <li>Renamed <code>glfwGetJoystickPos</code> to <code>glfwGetJoystickAxes</code> to match <code>glfwGetJoystickButtons</code></li>
   <li>Renamed mouse position functions to cursor position equivalents</li>
   <li>Replaced <code>glfwOpenWindow</code> and <code>glfwCloseWindow</code> with <code>glfwCreateWindow</code> and <code>glfwDestroyWindow</code></li>
+  <li>Replaced <code>glfwGetDesktopMode</code> width <code>glfwGetVideoMode</code></li>
   <li>Replaced ad hoc build system with CMake</li>
   <li>Replaced layout-dependent key codes with single, platform-independent set based on US layout</li>
   <li>Replaced mouse wheel interface with two-dimensional, floating point scrolling interface</li>
   <li>Replaced <code>glfwEnable</code> and <code>glfwDisable</code> with <code>glfwGetInputMode</code> and <code>glfwSetInputMode</code></li>
   <li>Replaced <code>joystick</code> test with graphical version</li>
-  <li>Replaced automatic closing of windows with <code>GLFW_CLOSE_REQUESTED</code> window parameter</li>
+  <li>Replaced automatic closing of windows with <code>GLFW_SHOULD_CLOSE</code> window parameter</li>
   <li>Removed the <code>GLFW_KEY_REPEAT</code> input option</li>
   <li>Removed event auto-polling and the <code>GLFW_AUTO_POLL_EVENTS</code> window enable</li>
   <li>Removed the Win32 port .def files</li>
@@ -327,6 +332,7 @@ version of GLFW.</p>
   <li>Removed <code>glfwGetNumberOfProcessors</code> function</li>
   <li>Removed <code>glfwGetGLVersion</code> function</li>
   <li>Removed <code>GLFW_OPENED</code> window parameter</li>
+  <li>Removed <code>GLFW_WINDOW</code> and <code>GLFW_FULLSCREEN</code></li>
   <li>Removed nonsensical key actions for Unicode character input</li>
   <li>Removed <code>GLFWCALL</code> and <code>GLFWAPIENTRY</code> macros for stdcall calling convention</li>
   <li>Removed <code>GLFW_ACCELERATED</code> window parameter</li>
@@ -927,6 +933,9 @@ their skills.  Special thanks go out to:</p>
   a fix for the Xkb support</li>
 
   <li>David Medlock, for doing the initial Lua port</li>
+
+  <li>Marcel Metz, for the initial implementation of multi-monitor support on
+  X11 and Win32</li>
 
   <li>Kenneth Miller, for his many and detailed bug reports on Win32</li>
 

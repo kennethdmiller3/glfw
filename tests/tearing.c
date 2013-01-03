@@ -48,6 +48,11 @@ static void set_swap_interval(GLFWwindow window, int interval)
     glfwSetWindowTitle(window, title);
 }
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static void window_size_callback(GLFWwindow window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -64,17 +69,14 @@ int main(void)
     float position;
     GLFWwindow window;
 
-    if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
-        exit(EXIT_FAILURE);
-    }
+    glfwSetErrorCallback(error_callback);
 
-    window = glfwCreateWindow(640, 480, GLFW_WINDOWED, "", NULL);
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
+
+    window = glfwCreateWindow(640, 480, "", NULL, NULL);
     if (!window)
     {
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
-
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -89,7 +91,7 @@ int main(void)
     glOrtho(-1.f, 1.f, -1.f, 1.f, 1.f, -1.f);
     glMatrixMode(GL_MODELVIEW);
 
-    while (!glfwGetWindowParam(window, GLFW_CLOSE_REQUESTED))
+    while (!glfwGetWindowParam(window, GLFW_SHOULD_CLOSE))
     {
         glClear(GL_COLOR_BUFFER_BIT);
 

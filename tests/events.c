@@ -219,6 +219,11 @@ static const char* get_character_string(int character)
     return result;
 }
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static void window_pos_callback(GLFWwindow window, int x, int y)
 {
     printf("%08x at %0.3f: Window position: %i %i\n",
@@ -365,6 +370,32 @@ static void touch_pos_callback(GLFWwindow window, int touch, double x, double y)
            x, y);
 }
 
+void monitor_callback(GLFWmonitor monitor, int event)
+{
+    if (event == GLFW_CONNECTED)
+    {
+        GLFWvidmode mode;
+        glfwGetVideoMode(monitor, &mode);
+
+        printf("%08x at %0.3f: Monitor %s (%ix%i at %ix%i, %ix%i mm) was connected\n",
+               counter++,
+               glfwGetTime(),
+               glfwGetMonitorName(monitor),
+               mode.width, mode.height,
+               glfwGetMonitorParam(monitor, GLFW_MONITOR_POS_X),
+               glfwGetMonitorParam(monitor, GLFW_MONITOR_POS_Y),
+               glfwGetMonitorParam(monitor, GLFW_MONITOR_WIDTH_MM),
+               glfwGetMonitorParam(monitor, GLFW_MONITOR_HEIGHT_MM));
+    }
+    else
+    {
+        printf("%08x at %0.3f: Monitor %s was disconnected\n",
+               counter++,
+               glfwGetTime(),
+               glfwGetMonitorName(monitor));
+    }
+}
+
 int main(void)
 {
     GLFWwindow window;
@@ -372,24 +403,23 @@ int main(void)
 
     setlocale(LC_ALL, "");
 
+    glfwSetErrorCallback(error_callback);
+
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
-    }
 
     printf("Library initialized\n");
 
-    window = glfwCreateWindow(640, 480, GLFW_WINDOWED, "Event Linter", NULL);
+    window = glfwCreateWindow(640, 480, "Event Linter", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
-
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
     }
 
     printf("Window opened\n");
+
+    glfwSetMonitorCallback(monitor_callback);
 
     glfwSetWindowPosCallback(window, window_pos_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
@@ -416,7 +446,7 @@ int main(void)
 
     printf("Main loop starting\n");
 
-    while (!glfwGetWindowParam(window, GLFW_CLOSE_REQUESTED))
+    while (!glfwGetWindowParam(window, GLFW_SHOULD_CLOSE))
         glfwWaitEvents();
 
     glfwTerminate();

@@ -46,8 +46,9 @@ typedef void* id;
  #error "No supported context creation API selected"
 #endif
 
-#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowNS  NS
-#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryNS NS
+#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowNS  ns
+#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryNS ns
+#define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorNS ns
 
 
 //========================================================================
@@ -65,10 +66,10 @@ typedef intptr_t GLFWintptr;
 //------------------------------------------------------------------------
 typedef struct _GLFWwindowNS
 {
-    id           object;
-    id	         delegate;
-    id           view;
-    unsigned int modifierFlags;
+    id              object;
+    id	            delegate;
+    id              view;
+    unsigned int    modifierFlags;
 } _GLFWwindowNS;
 
 
@@ -78,17 +79,27 @@ typedef struct _GLFWwindowNS
 typedef struct _GLFWlibraryNS
 {
     struct {
-        double base;
-        double resolution;
+        double      base;
+        double      resolution;
     } timer;
 
-    CGDisplayModeRef desktopMode;
     CGEventSourceRef eventSource;
-    id               delegate;
-    id               autoreleasePool;
+    id              delegate;
+    id              autoreleasePool;
 
-    char*            clipboardString;
+    char*           clipboardString;
 } _GLFWlibraryNS;
+
+
+//------------------------------------------------------------------------
+// Platform-specific monitor structure
+//------------------------------------------------------------------------
+typedef struct _GLFWmonitorNS
+{
+    CGDirectDisplayID displayID;
+    CGDisplayModeRef previousMode;
+
+} _GLFWmonitorNS;
 
 
 //========================================================================
@@ -103,11 +114,15 @@ void _glfwInitJoysticks(void);
 void _glfwTerminateJoysticks(void);
 
 // Fullscreen
-GLboolean _glfwSetVideoMode(int* width, int* height, int* bpp, int* refreshRate);
-void _glfwRestoreVideoMode(void);
+GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, int* width, int* height, int* bpp);
+void _glfwRestoreVideoMode(_GLFWmonitor* monitor);
 
 // OpenGL support
 int _glfwInitOpenGL(void);
 void _glfwTerminateOpenGL(void);
+int _glfwCreateContext(_GLFWwindow* window,
+                       const _GLFWwndconfig* wndconfig,
+                       const _GLFWfbconfig* fbconfig);
+void _glfwDestroyContext(_GLFWwindow* window);
 
 #endif // _cocoa_platform_h_

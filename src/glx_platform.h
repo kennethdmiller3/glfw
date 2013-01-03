@@ -54,14 +54,14 @@
 #elif defined(_GLFW_HAS_GLXGETPROCADDRESSEXT)
  #define _glfw_glXGetProcAddress(x) glXGetProcAddressEXT(x)
 #elif defined(_GLFW_HAS_DLOPEN)
- #define _glfw_glXGetProcAddress(x) dlsym(_glfwLibrary.GLX.libGL, x)
+ #define _glfw_glXGetProcAddress(x) dlsym(_glfw.glx.libGL, x)
  #define _GLFW_DLOPEN_LIBGL
 #else
  #error "No OpenGL entry point retrieval mechanism was enabled"
 #endif
 
-#define _GLFW_PLATFORM_CONTEXT_STATE        _GLFWcontextGLX GLX
-#define _GLFW_PLATFORM_LIBRARY_OPENGL_STATE _GLFWlibraryGLX GLX
+#define _GLFW_PLATFORM_CONTEXT_STATE        _GLFWcontextGLX glx
+#define _GLFW_PLATFORM_LIBRARY_OPENGL_STATE _GLFWlibraryGLX glx
 
 #ifndef GLX_MESA_swap_control
 typedef int (*PFNGLXSWAPINTERVALMESAPROC)(int);
@@ -77,8 +77,8 @@ typedef int (*PFNGLXSWAPINTERVALMESAPROC)(int);
 //------------------------------------------------------------------------
 typedef struct _GLFWcontextGLX
 {
-    GLXContext    context;           // OpenGL rendering context
-    XVisualInfo*  visual;            // Visual for selected GLXFBConfig
+    GLXContext      context; // OpenGL rendering context
+    XVisualInfo*    visual;  // Visual for selected GLXFBConfig
 
 } _GLFWcontextGLX;
 
@@ -89,7 +89,9 @@ typedef struct _GLFWcontextGLX
 typedef struct _GLFWlibraryGLX
 {
     // Server-side GLX version
-    int             majorVersion, minorVersion;
+    int             versionMajor, versionMinor;
+    int             eventBase;
+    int             errorBase;
 
     // GLX extensions
     PFNGLXSWAPINTERVALSGIPROC             SwapIntervalSGI;
@@ -100,16 +102,16 @@ typedef struct _GLFWlibraryGLX
     PFNGLXCREATECONTEXTWITHCONFIGSGIXPROC CreateContextWithConfigSGIX;
     PFNGLXGETVISUALFROMFBCONFIGSGIXPROC   GetVisualFromFBConfigSGIX;
     PFNGLXCREATECONTEXTATTRIBSARBPROC     CreateContextAttribsARB;
-    GLboolean   SGIX_fbconfig;
-    GLboolean   SGI_swap_control;
-    GLboolean   EXT_swap_control;
-    GLboolean   MESA_swap_control;
-    GLboolean   ARB_multisample;
-    GLboolean   ARB_framebuffer_sRGB;
-    GLboolean   ARB_create_context;
-    GLboolean   ARB_create_context_profile;
-    GLboolean   ARB_create_context_robustness;
-    GLboolean   EXT_create_context_es2_profile;
+    GLboolean       SGIX_fbconfig;
+    GLboolean       SGI_swap_control;
+    GLboolean       EXT_swap_control;
+    GLboolean       MESA_swap_control;
+    GLboolean       ARB_multisample;
+    GLboolean       ARB_framebuffer_sRGB;
+    GLboolean       ARB_create_context;
+    GLboolean       ARB_create_context_profile;
+    GLboolean       ARB_create_context_robustness;
+    GLboolean       EXT_create_context_es2_profile;
 
 #if defined(_GLFW_DLOPEN_LIBGL)
     void*           libGL;  // dlopen handle for libGL.so

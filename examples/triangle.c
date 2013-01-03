@@ -10,24 +10,26 @@
 #define GLFW_INCLUDE_GLU
 #include <GL/glfw3.h>
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 int main(void)
 {
     int width, height, x;
     GLFWwindow window;
 
+    glfwSetErrorCallback(error_callback);
+
     // Initialise GLFW
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW\n");
         exit(EXIT_FAILURE);
-    }
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow(640, 480, GLFW_WINDOWED, "Spinning Triangle", NULL);
+    window = glfwCreateWindow(640, 480, "Spinning Triangle", NULL, NULL);
     if (!window)
     {
-        fprintf(stderr, "Failed to open GLFW window\n");
-
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -88,7 +90,7 @@ int main(void)
         // Check if the ESC key was pressed or the window should be closed
         if (glfwGetKey(window, GLFW_KEY_ESCAPE))
             break;
-        if (glfwGetWindowParam(window, GLFW_CLOSE_REQUESTED))
+        if (glfwGetWindowParam(window, GLFW_SHOULD_CLOSE))
             break;
     }
 

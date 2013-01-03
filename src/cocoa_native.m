@@ -47,11 +47,11 @@ GLFWAPI id glfwGetCocoaWindow(GLFWwindow handle)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return 0;
     }
 
-    return window->NS.object;
+    return window->ns.object;
 }
 
 
@@ -65,10 +65,10 @@ GLFWAPI id glfwGetNSGLContext(GLFWwindow handle)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return NULL;
     }
 
-    return window->NSGL.context;
+    return window->nsgl.context;
 }
 

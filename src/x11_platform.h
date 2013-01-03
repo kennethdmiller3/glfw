@@ -54,19 +54,20 @@
 #endif
 
 #if defined(_GLFW_GLX)
- #define _GLFW_X11_CONTEXT_VISUAL window->GLX.visual
+ #define _GLFW_X11_CONTEXT_VISUAL window->glx.visual
  #include "glx_platform.h"
 #elif defined(_GLFW_EGL)
- #define _GLFW_X11_CONTEXT_VISUAL window->EGL.visual
- #define _GLFW_EGL_NATIVE_WINDOW  window->X11.handle
- #define _GLFW_EGL_NATIVE_DISPLAY _glfwLibrary.X11.display
+ #define _GLFW_X11_CONTEXT_VISUAL window->egl.visual
+ #define _GLFW_EGL_NATIVE_WINDOW  window->x11.handle
+ #define _GLFW_EGL_NATIVE_DISPLAY _glfw.x11.display
  #include "egl_platform.h"
 #else
  #error "No supported context creation API selected"
 #endif
 
-#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowX11  X11
-#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryX11 X11
+#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowX11  x11
+#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryX11 x11
+#define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorX11 x11
 
 // Clipboard format atom indices
 #define _GLFW_CLIPBOARD_FORMAT_UTF8     0
@@ -96,21 +97,21 @@ typedef intptr_t GLFWintptr;
 typedef struct _GLFWwindowX11
 {
     // Platform specific window resources
-    Colormap      colormap;          // Window colormap
-    Window        handle;            // Window handle
+    Colormap        colormap;          // Window colormap
+    Window          handle;            // Window handle
 
     // Various platform specific internal variables
-    GLboolean     overrideRedirect; // True if window is OverrideRedirect
-    GLboolean     cursorGrabbed;    // True if cursor is currently grabbed
-    GLboolean     cursorHidden;     // True if cursor is currently hidden
-    GLboolean     cursorCentered;   // True if cursor was moved since last poll
-    int           cursorPosX, cursorPosY;
+    GLboolean       overrideRedirect; // True if window is OverrideRedirect
+    GLboolean       cursorGrabbed;    // True if cursor is currently grabbed
+    GLboolean       cursorHidden;     // True if cursor is currently hidden
+    GLboolean       cursorCentered;   // True if cursor was moved since last poll
+    int             cursorPosX, cursorPosY;
 
     // Window position hint (commited the first time the window is shown)
-    GLboolean     windowPosSet;     // False until the window position has
-                                    // been set
-    int           positionX;        // The window position to be set the
-    int           positionY;        // first time the window is shown
+    GLboolean       windowPosSet;     // False until the window position has
+                                      // been set
+    int             positionX;        // The window position to be set the
+    int             positionY;        // first time the window is shown
 
 } _GLFWwindowX11;
 
@@ -140,25 +141,25 @@ typedef struct _GLFWlibraryX11
         GLboolean   available;
         int         eventBase;
         int         errorBase;
-    } VidMode;
+    } vidmode;
 
     struct {
         GLboolean   available;
         int         eventBase;
         int         errorBase;
-        int         majorVersion;
-        int         minorVersion;
+        int         versionMajor;
+        int         versionMinor;
         GLboolean   gammaBroken;
-    } RandR;
+    } randr;
 
     struct {
         GLboolean   available;
         int         majorOpcode;
         int         eventBase;
         int         errorBase;
-        int         majorVersion;
-        int         minorVersion;
-    } Xkb;
+        int         versionMajor;
+        int         versionMinor;
+    } xkb;
 
     // Key code LUT (mapping X11 key codes to GLFW key codes)
     int             keyCodeLUT[256];
@@ -172,20 +173,6 @@ typedef struct _GLFWlibraryX11
         int         exposure;
     } saver;
 
-    // Fullscreen data
-    struct {
-        GLboolean   modeChanged;
-#if defined(_GLFW_HAS_XRANDR)
-        SizeID      oldSizeID;
-        int         oldWidth;
-        int         oldHeight;
-        Rotation    oldRotation;
-#endif /*_GLFW_HAS_XRANDR*/
-#if defined(_GLFW_HAS_XF86VIDMODE)
-        XF86VidModeModeInfo oldMode;
-#endif /*_GLFW_HAS_XF86VIDMODE*/
-    } FS;
-
     // Timer data
     struct {
         GLboolean   monotonic;
@@ -195,26 +182,44 @@ typedef struct _GLFWlibraryX11
 
     // Selection data
     struct {
-        Atom atom;
-        Atom formats[_GLFW_CLIPBOARD_FORMAT_COUNT];
-        char* string;
-        Atom target;
-        Atom targets;
-        Atom property;
-        int status;
+        Atom        atom;
+        Atom        formats[_GLFW_CLIPBOARD_FORMAT_COUNT];
+        char*       string;
+        Atom        target;
+        Atom        targets;
+        Atom        property;
+        int         status;
     } selection;
 
     struct {
-        int             present;
-        int             fd;
-        int             numAxes;
-        int             numButtons;
-        float*          axis;
-        unsigned char*  button;
-        char*           name;
+        int         present;
+        int         fd;
+        int         numAxes;
+        int         numButtons;
+        float*      axis;
+        unsigned char* button;
+        char*       name;
     } joystick[GLFW_JOYSTICK_LAST + 1];
 
 } _GLFWlibraryX11;
+
+
+//------------------------------------------------------------------------
+// Platform-specific monitor structure
+//------------------------------------------------------------------------
+typedef struct _GLFWmonitorX11
+{
+    GLboolean       modeChanged;
+
+#if defined(_GLFW_HAS_XRANDR)
+    XRROutputInfo*  output;
+    SizeID          oldSizeID;
+    int             oldWidth;
+    int             oldHeight;
+    Rotation        oldRotation;
+#endif /*_GLFW_HAS_XRANDR*/
+
+} _GLFWmonitorX11;
 
 
 //========================================================================
@@ -237,10 +242,10 @@ int _glfwCreateContext(_GLFWwindow* window,
 void _glfwDestroyContext(_GLFWwindow* window);
 
 // Fullscreen support
-int  _glfwGetClosestVideoMode(int* width, int* height, int* rate);
-void _glfwSetVideoModeMODE(int mode, int rate);
-void _glfwSetVideoMode(int* width, int* height, int* rate);
-void _glfwRestoreVideoMode(void);
+int  _glfwGetClosestVideoMode(_GLFWmonitor* monitor, int* width, int* height);
+void _glfwSetVideoModeMODE(_GLFWmonitor* monitor, int mode);
+void _glfwSetVideoMode(_GLFWmonitor* monitor, int* width, int* height);
+void _glfwRestoreVideoMode(_GLFWmonitor* monitor);
 
 // Joystick input
 int  _glfwInitJoysticks(void);

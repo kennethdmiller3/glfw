@@ -43,7 +43,7 @@
 
 GLFWAPI Display* glfwGetX11Display(void)
 {
-    return _glfwLibrary.X11.display;
+    return _glfw.x11.display;
 }
 
 
@@ -57,11 +57,11 @@ GLFWAPI Window glfwGetX11Window(GLFWwindow handle)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return 0;
     }
 
-    return window->X11.handle;
+    return window->x11.handle;
 }
 
 
@@ -75,10 +75,10 @@ GLFWAPI GLXContext glfwGetGLXContext(GLFWwindow handle)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return NULL;
     }
 
-    return window->GLX.context;
+    return window->glx.context;
 }
 

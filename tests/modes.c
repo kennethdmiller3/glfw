@@ -49,7 +49,7 @@ static void usage(void)
     printf("       modes -h\n");
 }
 
-static const char* format_mode(GLFWvidmode* mode)
+static const char* format_mode(const GLFWvidmode* mode)
 {
     static char buffer[512];
 
@@ -90,46 +90,62 @@ static void key_callback(GLFWwindow window, int key, int action)
     }
 }
 
-static void list_modes(void)
+static void list_modes(GLFWmonitor monitor)
 {
-    int count, i;
-    GLFWvidmode desktop_mode;
-    GLFWvidmode* modes = glfwGetVideoModes(&count);
+    int count, widthMM, heightMM, dpi, i;
+    GLFWvidmode mode;
+    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
 
-    glfwGetDesktopMode(&desktop_mode);
-    printf("Desktop mode: %s\n", format_mode(&desktop_mode));
+    glfwGetVideoMode(monitor, &mode);
 
-    printf("Available modes:\n");
+    printf("Name: %s (%s)\n",
+           glfwGetMonitorName(monitor),
+           glfwGetPrimaryMonitor() == monitor ? "primary" : "secondary");
+    printf("Current mode: %s\n", format_mode(&mode));
+    printf("Virtual position: %i %i\n",
+           glfwGetMonitorParam(monitor, GLFW_MONITOR_POS_X),
+           glfwGetMonitorParam(monitor, GLFW_MONITOR_POS_Y));
+
+    widthMM = glfwGetMonitorParam(monitor, GLFW_MONITOR_WIDTH_MM);
+    heightMM = glfwGetMonitorParam(monitor, GLFW_MONITOR_HEIGHT_MM);
+    dpi = (int) ((float) mode.width * 25.4f / (float) widthMM);
+    printf("Physical size: %i x %i mm (%i dpi)\n", widthMM, heightMM, dpi);
+
+    printf("Modes:\n");
 
     for (i = 0;  i < count;  i++)
     {
         printf("%3u: %s", (unsigned int) i, format_mode(modes + i));
 
-        if (memcmp(&desktop_mode, modes + i, sizeof(GLFWvidmode)) == 0)
-            printf(" (desktop mode)");
+        if (memcmp(&mode, modes + i, sizeof(GLFWvidmode)) == 0)
+            printf(" (current mode)");
 
         putchar('\n');
     }
 }
 
-static void test_modes(void)
+static void test_modes(GLFWmonitor monitor)
 {
     int i, count;
-    GLFWvidmode* modes = glfwGetVideoModes(&count);
+    const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
 
     for (i = 0;  i < count;  i++)
     {
-        GLFWvidmode* mode = modes + i;
+        const GLFWvidmode* mode = modes + i;
         GLFWvidmode current;
 
         glfwWindowHint(GLFW_RED_BITS, mode->redBits);
         glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
         glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 
-        printf("Testing mode %u: %s", (unsigned int) i, format_mode(mode));
+        printf("Testing mode %u on monitor %s: %s\n",
+               (unsigned int) i,
+               glfwGetMonitorName(monitor),
+               format_mode(mode));
 
         window_handle = glfwCreateWindow(mode->width, mode->height,
-                                         GLFW_FULLSCREEN, "Video Mode Test",
+                                         "Video Mode Test",
+                                         glfwGetPrimaryMonitor(),
                                          NULL);
         if (!window_handle)
         {
@@ -195,7 +211,8 @@ static void test_modes(void)
 
 int main(int argc, char** argv)
 {
-    int ch, mode = LIST_MODE;
+    int ch, i, count, mode = LIST_MODE;
+    const GLFWmonitor* monitors;
 
     while ((ch = getopt(argc, argv, "th")) != -1)
     {
@@ -221,10 +238,15 @@ int main(int argc, char** argv)
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-    if (mode == LIST_MODE)
-        list_modes();
-    else if (mode == TEST_MODE)
-        test_modes();
+    monitors = glfwGetMonitors(&count);
+
+    for (i = 0;  i < count;  i++)
+    {
+        if (mode == LIST_MODE)
+            list_modes(monitors[i]);
+        else if (mode == TEST_MODE)
+            test_modes(monitors[i]);
+    }
 
     glfwTerminate();
     exit(EXIT_SUCCESS);

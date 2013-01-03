@@ -40,29 +40,29 @@ static const char* titles[] =
     "Quux"
 };
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 int main(void)
 {
     int i;
     GLboolean running = GL_TRUE;
     GLFWwindow windows[4];
 
+    glfwSetErrorCallback(error_callback);
+
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n",
-                glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
-    }
 
     for (i = 0;  i < 4;  i++)
     {
         glfwWindowHint(GLFW_POSITION_X, 100 + (i & 1) * 300);
         glfwWindowHint(GLFW_POSITION_Y, 100 + (i >> 1) * 300);
-        windows[i] = glfwCreateWindow(200, 200, GLFW_WINDOWED, titles[i], NULL);
+        windows[i] = glfwCreateWindow(200, 200, titles[i], NULL, NULL);
         if (!windows[i])
         {
-            fprintf(stderr, "Failed to open GLFW window: %s\n",
-                    glfwErrorString(glfwGetError()));
-
             glfwTerminate();
             exit(EXIT_FAILURE);
         }
@@ -82,7 +82,7 @@ int main(void)
             glClear(GL_COLOR_BUFFER_BIT);
             glfwSwapBuffers(windows[i]);
 
-            if (glfwGetWindowParam(windows[i], GLFW_CLOSE_REQUESTED))
+            if (glfwGetWindowParam(windows[i], GLFW_SHOULD_CLOSE))
                 running = GL_FALSE;
         }
 

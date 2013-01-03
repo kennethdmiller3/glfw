@@ -47,6 +47,11 @@ static GLboolean control_is_down(GLFWwindow window)
            glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
 }
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static int window_close_callback(GLFWwindow window)
 {
     closed = GL_TRUE;
@@ -93,11 +98,6 @@ static void window_size_callback(GLFWwindow window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-static void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error in %s\n", description);
-}
-
 int main(int argc, char** argv)
 {
     int ch;
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    window = glfwCreateWindow(200, 200, GLFW_WINDOWED, "Clipboard Test", NULL);
+    window = glfwCreateWindow(200, 200, "Clipboard Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();

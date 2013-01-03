@@ -38,6 +38,11 @@
 void (*glXGetProcAddressEXT(const GLubyte* procName))();
 
 
+#ifndef GLXBadProfileARB
+ #define GLXBadProfileARB 13
+#endif
+
+
 //========================================================================
 // Thread local storage attribute macro
 //========================================================================
@@ -46,6 +51,12 @@ void (*glXGetProcAddressEXT(const GLubyte* procName))();
 #else
  #define _GLFW_TLS
 #endif
+
+
+//========================================================================
+// The X error code as provided to the X error handler
+//========================================================================
+static unsigned long _glfwErrorCode = Success;
 
 
 //========================================================================
@@ -63,13 +74,13 @@ static int getFBConfigAttrib(_GLFWwindow* window, GLXFBConfig fbconfig, int attr
 {
     int value;
 
-    if (_glfwLibrary.GLX.SGIX_fbconfig)
+    if (_glfw.glx.SGIX_fbconfig)
     {
-        _glfwLibrary.GLX.GetFBConfigAttribSGIX(_glfwLibrary.X11.display,
-                                               fbconfig, attrib, &value);
+        _glfw.glx.GetFBConfigAttribSGIX(_glfw.x11.display,
+                                        fbconfig, attrib, &value);
     }
     else
-        glXGetFBConfigAttrib(_glfwLibrary.X11.display, fbconfig, attrib, &value);
+        glXGetFBConfigAttrib(_glfw.x11.display, fbconfig, attrib, &value);
 
     return value;
 }
@@ -89,17 +100,17 @@ static _GLFWfbconfig* getFBConfigs(_GLFWwindow* window, unsigned int* found)
 
     *found = 0;
 
-    if (_glfwLibrary.GLX.majorVersion == 1 && _glfwLibrary.GLX.minorVersion < 3)
+    if (_glfw.glx.versionMajor == 1 && _glfw.glx.versionMinor < 3)
     {
-        if (!_glfwLibrary.GLX.SGIX_fbconfig)
+        if (!_glfw.glx.SGIX_fbconfig)
         {
-            _glfwSetError(GLFW_API_UNAVAILABLE,
-                          "GLX: GLXFBConfig support not found");
+            _glfwInputError(GLFW_API_UNAVAILABLE,
+                            "GLX: GLXFBConfig support not found");
             return NULL;
         }
     }
 
-    vendor = glXGetClientString(_glfwLibrary.X11.display, GLX_VENDOR);
+    vendor = glXGetClientString(_glfw.x11.display, GLX_VENDOR);
 
     if (strcmp(vendor, "Chromium") == 0)
     {
@@ -108,28 +119,26 @@ static _GLFWfbconfig* getFBConfigs(_GLFWwindow* window, unsigned int* found)
         trustWindowBit = GL_FALSE;
     }
 
-    if (_glfwLibrary.GLX.SGIX_fbconfig)
+    if (_glfw.glx.SGIX_fbconfig)
     {
-        fbconfigs = _glfwLibrary.GLX.ChooseFBConfigSGIX(_glfwLibrary.X11.display,
-                                                        _glfwLibrary.X11.screen,
-                                                        NULL,
-                                                        &count);
+        fbconfigs = _glfw.glx.ChooseFBConfigSGIX(_glfw.x11.display,
+                                                 _glfw.x11.screen,
+                                                 NULL,
+                                                 &count);
         if (!count)
         {
-            _glfwSetError(GLFW_API_UNAVAILABLE,
-                          "GLX: No GLXFBConfigs returned");
+            _glfwInputError(GLFW_API_UNAVAILABLE,
+                            "GLX: No GLXFBConfigs returned");
             return NULL;
         }
     }
     else
     {
-        fbconfigs = glXGetFBConfigs(_glfwLibrary.X11.display,
-                                    _glfwLibrary.X11.screen,
-                                    &count);
+        fbconfigs = glXGetFBConfigs(_glfw.x11.display, _glfw.x11.screen, &count);
         if (!count)
         {
-            _glfwSetError(GLFW_API_UNAVAILABLE,
-                          "GLX: No GLXFBConfigs returned");
+            _glfwInputError(GLFW_API_UNAVAILABLE,
+                            "GLX: No GLXFBConfigs returned");
             return NULL;
         }
     }
@@ -137,7 +146,7 @@ static _GLFWfbconfig* getFBConfigs(_GLFWwindow* window, unsigned int* found)
     result = (_GLFWfbconfig*) malloc(sizeof(_GLFWfbconfig) * count);
     if (!result)
     {
-        _glfwSetError(GLFW_OUT_OF_MEMORY, NULL);
+        _glfwInputError(GLFW_OUT_OF_MEMORY, NULL);
         return NULL;
     }
 
@@ -185,12 +194,12 @@ static _GLFWfbconfig* getFBConfigs(_GLFWwindow* window, unsigned int* found)
         f->auxBuffers = getFBConfigAttrib(window, fbconfigs[i], GLX_AUX_BUFFERS);
         f->stereo = getFBConfigAttrib(window, fbconfigs[i], GLX_STEREO);
 
-        if (_glfwLibrary.GLX.ARB_multisample)
+        if (_glfw.glx.ARB_multisample)
             f->samples = getFBConfigAttrib(window, fbconfigs[i], GLX_SAMPLES);
         else
             f->samples = 0;
 
-        if (_glfwLibrary.GLX.ARB_framebuffer_sRGB)
+        if (_glfw.glx.ARB_framebuffer_sRGB)
             f->sRGB = getFBConfigAttrib(window, fbconfigs[i], GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB);
         else
             f->sRGB = GL_FALSE;
@@ -207,21 +216,51 @@ static _GLFWfbconfig* getFBConfigs(_GLFWwindow* window, unsigned int* found)
 
 
 //========================================================================
-// Error handler for BadMatch errors when requesting context with
-// unavailable OpenGL versions using the GLX_ARB_create_context extension
+// Error handler used when creating a context with the GLX_ARB_create_context
+// extension set
 //========================================================================
 
 static int errorHandler(Display *display, XErrorEvent* event)
 {
+    _glfwErrorCode = event->error_code;
     return 0;
 }
 
 
 //========================================================================
-// Create the actual OpenGL context
+// Create the OpenGL context using legacy API
 //========================================================================
 
-#define setGLXattrib(attribs, index, attribName, attribValue) \
+static void createLegacyContext(_GLFWwindow* window,
+                                const _GLFWwndconfig* wndconfig,
+                                GLXFBConfig fbconfig,
+                                GLXContext share)
+{
+    if (_glfw.glx.SGIX_fbconfig)
+    {
+        window->glx.context =
+            _glfw.glx.CreateContextWithConfigSGIX(_glfw.x11.display,
+                                                  fbconfig,
+                                                  GLX_RGBA_TYPE,
+                                                  share,
+                                                  True);
+    }
+    else
+    {
+        window->glx.context = glXCreateNewContext(_glfw.x11.display,
+                                                  fbconfig,
+                                                  GLX_RGBA_TYPE,
+                                                  share,
+                                                  True);
+    }
+}
+
+
+//========================================================================
+// Create the OpenGL context
+//========================================================================
+
+#define setGLXattrib(attribName, attribValue) \
     attribs[index++] = attribName; \
     attribs[index++] = attribValue;
 
@@ -230,199 +269,195 @@ static int createContext(_GLFWwindow* window,
                          GLXFBConfigID fbconfigID)
 {
     int attribs[40];
-    int dummy, index;
     GLXFBConfig* fbconfig;
     GLXContext share = NULL;
 
     if (wndconfig->share)
-        share = wndconfig->share->GLX.context;
+        share = wndconfig->share->glx.context;
 
     // Retrieve the previously selected GLXFBConfig
     {
-        index = 0;
+        int dummy, index = 0;
 
-        setGLXattrib(attribs, index, GLX_FBCONFIG_ID, (int) fbconfigID);
-        setGLXattrib(attribs, index, None, None);
+        setGLXattrib(GLX_FBCONFIG_ID, (int) fbconfigID);
+        setGLXattrib(None, None);
 
-        if (_glfwLibrary.GLX.SGIX_fbconfig)
+        if (_glfw.glx.SGIX_fbconfig)
         {
-            fbconfig = _glfwLibrary.GLX.ChooseFBConfigSGIX(_glfwLibrary.X11.display,
-                                                           _glfwLibrary.X11.screen,
-                                                           attribs,
-                                                           &dummy);
+            fbconfig = _glfw.glx.ChooseFBConfigSGIX(_glfw.x11.display,
+                                                    _glfw.x11.screen,
+                                                    attribs,
+                                                    &dummy);
         }
         else
         {
-            fbconfig = glXChooseFBConfig(_glfwLibrary.X11.display,
-                                         _glfwLibrary.X11.screen,
+            fbconfig = glXChooseFBConfig(_glfw.x11.display,
+                                         _glfw.x11.screen,
                                          attribs,
                                          &dummy);
         }
 
         if (fbconfig == NULL)
         {
-            _glfwSetError(GLFW_PLATFORM_ERROR,
-                          "GLX: Failed to retrieve the selected GLXFBConfig");
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "GLX: Failed to retrieve the selected GLXFBConfig");
             return GL_FALSE;
         }
     }
 
     // Retrieve the corresponding visual
-    if (_glfwLibrary.GLX.SGIX_fbconfig)
+    if (_glfw.glx.SGIX_fbconfig)
     {
-        window->GLX.visual = _glfwLibrary.GLX.GetVisualFromFBConfigSGIX(_glfwLibrary.X11.display,
-                                                                        *fbconfig);
+        window->glx.visual =
+            _glfw.glx.GetVisualFromFBConfigSGIX(_glfw.x11.display, *fbconfig);
     }
     else
     {
-        window->GLX.visual = glXGetVisualFromFBConfig(_glfwLibrary.X11.display,
+        window->glx.visual = glXGetVisualFromFBConfig(_glfw.x11.display,
                                                       *fbconfig);
     }
 
-    if (window->GLX.visual == NULL)
+    if (window->glx.visual == NULL)
     {
         XFree(fbconfig);
 
-        _glfwSetError(GLFW_PLATFORM_ERROR,
-                      "GLX: Failed to retrieve visual for GLXFBConfig");
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "GLX: Failed to retrieve visual for GLXFBConfig");
         return GL_FALSE;
     }
 
-    if (_glfwLibrary.GLX.ARB_create_context)
+    if (wndconfig->clientAPI == GLFW_OPENGL_ES_API)
     {
-        index = 0;
-
-        if (wndconfig->glMajor != 1 || wndconfig->glMinor != 0)
+        if (!_glfw.glx.ARB_create_context ||
+            !_glfw.glx.ARB_create_context_profile ||
+            !_glfw.glx.EXT_create_context_es2_profile)
         {
-            // Request an explicitly versioned context
-
-            setGLXattrib(attribs, index, GLX_CONTEXT_MAJOR_VERSION_ARB, wndconfig->glMajor);
-            setGLXattrib(attribs, index, GLX_CONTEXT_MINOR_VERSION_ARB, wndconfig->glMinor);
+            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+                            "GLX: OpenGL ES requested but "
+                            "GLX_EXT_create_context_es2_profile is unavailable");
+            return GL_FALSE;
         }
+    }
 
-        if (wndconfig->clientAPI == GLFW_OPENGL_ES_API)
+    if (wndconfig->glForward)
+    {
+        if (!_glfw.glx.ARB_create_context)
         {
-            if (!_glfwLibrary.GLX.ARB_create_context_profile ||
-                !_glfwLibrary.GLX.EXT_create_context_es2_profile)
-            {
-                _glfwSetError(GLFW_VERSION_UNAVAILABLE,
-                              "GLX: OpenGL ES 2.x requested but "
-                              "GLX_EXT_create_context_es2_profile is unavailable");
-                return GL_FALSE;
-            }
-
-            setGLXattrib(attribs, index,
-                         GLX_CONTEXT_PROFILE_MASK_ARB,
-                         GLX_CONTEXT_ES2_PROFILE_BIT_EXT);
+            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+                            "GLX: Forward compatibility requested but "
+                            "GLX_ARB_create_context_profile is unavailable");
+            return GL_FALSE;
         }
+    }
 
-        if (wndconfig->glForward || wndconfig->glDebug || wndconfig->glRobustness)
+    if (wndconfig->glProfile)
+    {
+        if (!_glfw.glx.ARB_create_context ||
+            !_glfw.glx.ARB_create_context_profile)
         {
-            int flags = 0;
+            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+                            "GLX: An OpenGL profile requested but "
+                            "GLX_ARB_create_context_profile is unavailable");
+            return GL_FALSE;
+        }
+    }
 
+    if (_glfw.glx.ARB_create_context)
+    {
+        int index = 0, mask = 0, flags = 0, strategy = 0;
+
+        if (wndconfig->clientAPI == GLFW_OPENGL_API)
+        {
             if (wndconfig->glForward)
                 flags |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
 
             if (wndconfig->glDebug)
                 flags |= GLX_CONTEXT_DEBUG_BIT_ARB;
 
-            if (wndconfig->glRobustness)
+            if (wndconfig->glProfile)
+            {
+                if (wndconfig->glProfile == GLFW_OPENGL_CORE_PROFILE)
+                    mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+                else if (wndconfig->glProfile == GLFW_OPENGL_COMPAT_PROFILE)
+                    mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            }
+        }
+        else
+            mask |= GLX_CONTEXT_ES2_PROFILE_BIT_EXT;
+
+        if (wndconfig->glRobustness != GLFW_NO_ROBUSTNESS)
+        {
+            if (_glfw.glx.ARB_create_context_robustness)
+            {
+                if (wndconfig->glRobustness == GLFW_NO_RESET_NOTIFICATION)
+                    strategy = GLX_NO_RESET_NOTIFICATION_ARB;
+                else if (wndconfig->glRobustness == GLFW_LOSE_CONTEXT_ON_RESET)
+                    strategy = GLX_LOSE_CONTEXT_ON_RESET_ARB;
+
                 flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-
-            setGLXattrib(attribs, index, GLX_CONTEXT_FLAGS_ARB, flags);
-        }
-
-        if (wndconfig->glProfile)
-        {
-            int flags = 0;
-
-            if (!_glfwLibrary.GLX.ARB_create_context_profile)
-            {
-                _glfwSetError(GLFW_VERSION_UNAVAILABLE,
-                              "GLX: An OpenGL profile requested but "
-                              "GLX_ARB_create_context_profile is unavailable");
-                return GL_FALSE;
             }
-
-            if (wndconfig->glProfile == GLFW_OPENGL_CORE_PROFILE)
-                flags = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-            else if (wndconfig->glProfile == GLFW_OPENGL_COMPAT_PROFILE)
-                flags = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-
-            setGLXattrib(attribs, index, GLX_CONTEXT_PROFILE_MASK_ARB, flags);
         }
 
-        if (wndconfig->glRobustness)
+        if (wndconfig->glMajor != 1 || wndconfig->glMinor != 0)
         {
-            int strategy;
+            // NOTE: Only request an explicitly versioned context when
+            // necessary, as explicitly requesting version 1.0 does not always
+            // return the highest available version
 
-            if (!_glfwLibrary.GLX.ARB_create_context_robustness)
-            {
-                _glfwSetError(GLFW_VERSION_UNAVAILABLE,
-                              "GLX: An OpenGL robustness strategy was "
-                              "requested but GLX_ARB_create_context_robustness "
-                              "is unavailable");
-                return GL_FALSE;
-            }
-
-            if (wndconfig->glRobustness == GLFW_OPENGL_NO_RESET_NOTIFICATION)
-                strategy = GLX_NO_RESET_NOTIFICATION_ARB;
-            else if (wndconfig->glRobustness == GLFW_OPENGL_LOSE_CONTEXT_ON_RESET)
-                strategy = GLX_LOSE_CONTEXT_ON_RESET_ARB;
-
-            setGLXattrib(attribs,
-                         index,
-                         GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
-                         strategy);
+            setGLXattrib(GLX_CONTEXT_MAJOR_VERSION_ARB, wndconfig->glMajor);
+            setGLXattrib(GLX_CONTEXT_MINOR_VERSION_ARB, wndconfig->glMinor);
         }
 
-        setGLXattrib(attribs, index, None, None);
+        if (mask)
+            setGLXattrib(GLX_CONTEXT_PROFILE_MASK_ARB, mask);
+
+        if (flags)
+            setGLXattrib(GLX_CONTEXT_FLAGS_ARB, flags);
+
+        if (strategy)
+            setGLXattrib(GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, strategy);
+
+        setGLXattrib(None, None);
 
         // This is the only place we set an Xlib error handler, and we only do
         // it because glXCreateContextAttribsARB generates a BadMatch error if
         // the requested OpenGL version is unavailable (instead of a civilized
         // response like returning NULL)
+        _glfwErrorCode = Success;
         XSetErrorHandler(errorHandler);
 
-        window->GLX.context =
-            _glfwLibrary.GLX.CreateContextAttribsARB(_glfwLibrary.X11.display,
-                                                     *fbconfig,
-                                                     share,
-                                                     True,
-                                                     attribs);
+        window->glx.context =
+            _glfw.glx.CreateContextAttribsARB(_glfw.x11.display,
+                                              *fbconfig,
+                                              share,
+                                              True,
+                                              attribs);
 
         // We are done, so unset the error handler again (see above)
         XSetErrorHandler(NULL);
+
+        if (window->glx.context == NULL)
+        {
+            // HACK: This is a fallback for the broken Mesa implementation of
+            // GLX_ARB_create_context_profile, which fails default 1.0 context
+            // creation with a GLXBadProfileARB error in violation of the spec
+            if (_glfwErrorCode == _glfw.glx.errorBase + GLXBadProfileARB &&
+                wndconfig->clientAPI == GLFW_OPENGL_API &&
+                wndconfig->glProfile == GLFW_OPENGL_NO_PROFILE &&
+                wndconfig->glForward == GL_FALSE)
+            {
+                createLegacyContext(window, wndconfig, *fbconfig, share);
+            }
+        }
     }
     else
-    {
-        if (_glfwLibrary.GLX.SGIX_fbconfig)
-        {
-            window->GLX.context =
-                _glfwLibrary.GLX.CreateContextWithConfigSGIX(_glfwLibrary.X11.display,
-                                                             *fbconfig,
-                                                             GLX_RGBA_TYPE,
-                                                             share,
-                                                             True);
-        }
-        else
-        {
-            window->GLX.context = glXCreateNewContext(_glfwLibrary.X11.display,
-                                                      *fbconfig,
-                                                      GLX_RGBA_TYPE,
-                                                      share,
-                                                      True);
-        }
-    }
+        createLegacyContext(window, wndconfig, *fbconfig, share);
 
     XFree(fbconfig);
 
-    if (window->GLX.context == NULL)
+    if (window->glx.context == NULL)
     {
-        // TODO: Handle all the various error codes here
-
-        _glfwSetError(GLFW_PLATFORM_ERROR,
-                      "GLX: Failed to create OpenGL context");
+        _glfwInputError(GLFW_PLATFORM_ERROR, "GLX: Failed to create context");
         return GL_FALSE;
     }
 
@@ -455,103 +490,106 @@ int _glfwInitOpenGL(void)
 
     for (i = 0;  libGL_names[i] != NULL;  i++)
     {
-        _glfwLibrary.GLX.libGL = dlopen(libGL_names[i], RTLD_LAZY | RTLD_GLOBAL);
-        if (_glfwLibrary.GLX.libGL)
+        _glfw.glx.libGL = dlopen(libGL_names[i], RTLD_LAZY | RTLD_GLOBAL);
+        if (_glfw.glx.libGL)
             break;
     }
 
-    if (!_glfwLibrary.GLX.libGL)
+    if (!_glfw.glx.libGL)
     {
-        _glfwSetError(GLFW_PLATFORM_ERROR, "GLX: Failed to find libGL");
+        _glfwInputError(GLFW_PLATFORM_ERROR, "GLX: Failed to find libGL");
         return GL_FALSE;
     }
 #endif
 
     // Check if GLX is supported on this display
-    if (!glXQueryExtension(_glfwLibrary.X11.display, NULL, NULL))
+    if (!glXQueryExtension(_glfw.x11.display,
+                           &_glfw.glx.errorBase,
+                           &_glfw.glx.eventBase))
     {
-        _glfwSetError(GLFW_API_UNAVAILABLE, "GLX: GLX support not found");
+        _glfwInputError(GLFW_API_UNAVAILABLE, "GLX: GLX support not found");
         return GL_FALSE;
     }
 
-    if (!glXQueryVersion(_glfwLibrary.X11.display,
-                         &_glfwLibrary.GLX.majorVersion,
-                         &_glfwLibrary.GLX.minorVersion))
+    if (!glXQueryVersion(_glfw.x11.display,
+                         &_glfw.glx.versionMajor,
+                         &_glfw.glx.versionMinor))
     {
-        _glfwSetError(GLFW_API_UNAVAILABLE, "GLX: Failed to query GLX version");
+        _glfwInputError(GLFW_API_UNAVAILABLE,
+                        "GLX: Failed to query GLX version");
         return GL_FALSE;
     }
 
     if (_glfwPlatformExtensionSupported("GLX_EXT_swap_control"))
     {
-        _glfwLibrary.GLX.SwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)
+        _glfw.glx.SwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)
             _glfwPlatformGetProcAddress("glXSwapIntervalEXT");
 
-        if (_glfwLibrary.GLX.SwapIntervalEXT)
-            _glfwLibrary.GLX.EXT_swap_control = GL_TRUE;
+        if (_glfw.glx.SwapIntervalEXT)
+            _glfw.glx.EXT_swap_control = GL_TRUE;
     }
 
     if (_glfwPlatformExtensionSupported("GLX_SGI_swap_control"))
     {
-        _glfwLibrary.GLX.SwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)
+        _glfw.glx.SwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)
             _glfwPlatformGetProcAddress("glXSwapIntervalSGI");
 
-        if (_glfwLibrary.GLX.SwapIntervalSGI)
-            _glfwLibrary.GLX.SGI_swap_control = GL_TRUE;
+        if (_glfw.glx.SwapIntervalSGI)
+            _glfw.glx.SGI_swap_control = GL_TRUE;
     }
 
     if (_glfwPlatformExtensionSupported("GLX_MESA_swap_control"))
     {
-        _glfwLibrary.GLX.SwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)
+        _glfw.glx.SwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)
             _glfwPlatformGetProcAddress("glXSwapIntervalMESA");
 
-        if (_glfwLibrary.GLX.SwapIntervalMESA)
-            _glfwLibrary.GLX.MESA_swap_control = GL_TRUE;
+        if (_glfw.glx.SwapIntervalMESA)
+            _glfw.glx.MESA_swap_control = GL_TRUE;
     }
 
     if (_glfwPlatformExtensionSupported("GLX_SGIX_fbconfig"))
     {
-        _glfwLibrary.GLX.GetFBConfigAttribSGIX = (PFNGLXGETFBCONFIGATTRIBSGIXPROC)
+        _glfw.glx.GetFBConfigAttribSGIX = (PFNGLXGETFBCONFIGATTRIBSGIXPROC)
             _glfwPlatformGetProcAddress("glXGetFBConfigAttribSGIX");
-        _glfwLibrary.GLX.ChooseFBConfigSGIX = (PFNGLXCHOOSEFBCONFIGSGIXPROC)
+        _glfw.glx.ChooseFBConfigSGIX = (PFNGLXCHOOSEFBCONFIGSGIXPROC)
             _glfwPlatformGetProcAddress("glXChooseFBConfigSGIX");
-        _glfwLibrary.GLX.CreateContextWithConfigSGIX = (PFNGLXCREATECONTEXTWITHCONFIGSGIXPROC)
+        _glfw.glx.CreateContextWithConfigSGIX = (PFNGLXCREATECONTEXTWITHCONFIGSGIXPROC)
             _glfwPlatformGetProcAddress("glXCreateContextWithConfigSGIX");
-        _glfwLibrary.GLX.GetVisualFromFBConfigSGIX = (PFNGLXGETVISUALFROMFBCONFIGSGIXPROC)
+        _glfw.glx.GetVisualFromFBConfigSGIX = (PFNGLXGETVISUALFROMFBCONFIGSGIXPROC)
             _glfwPlatformGetProcAddress("glXGetVisualFromFBConfigSGIX");
 
-        if (_glfwLibrary.GLX.GetFBConfigAttribSGIX &&
-            _glfwLibrary.GLX.ChooseFBConfigSGIX &&
-            _glfwLibrary.GLX.CreateContextWithConfigSGIX &&
-            _glfwLibrary.GLX.GetVisualFromFBConfigSGIX)
+        if (_glfw.glx.GetFBConfigAttribSGIX &&
+            _glfw.glx.ChooseFBConfigSGIX &&
+            _glfw.glx.CreateContextWithConfigSGIX &&
+            _glfw.glx.GetVisualFromFBConfigSGIX)
         {
-            _glfwLibrary.GLX.SGIX_fbconfig = GL_TRUE;
+            _glfw.glx.SGIX_fbconfig = GL_TRUE;
         }
     }
 
     if (_glfwPlatformExtensionSupported("GLX_ARB_multisample"))
-        _glfwLibrary.GLX.ARB_multisample = GL_TRUE;
+        _glfw.glx.ARB_multisample = GL_TRUE;
 
     if (_glfwPlatformExtensionSupported("GLX_ARB_framebuffer_sRGB"))
-        _glfwLibrary.GLX.ARB_framebuffer_sRGB = GL_TRUE;
+        _glfw.glx.ARB_framebuffer_sRGB = GL_TRUE;
 
     if (_glfwPlatformExtensionSupported("GLX_ARB_create_context"))
     {
-        _glfwLibrary.GLX.CreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)
+        _glfw.glx.CreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)
             _glfwPlatformGetProcAddress("glXCreateContextAttribsARB");
 
-        if (_glfwLibrary.GLX.CreateContextAttribsARB)
-            _glfwLibrary.GLX.ARB_create_context = GL_TRUE;
+        if (_glfw.glx.CreateContextAttribsARB)
+            _glfw.glx.ARB_create_context = GL_TRUE;
     }
 
     if (_glfwPlatformExtensionSupported("GLX_ARB_create_context_robustness"))
-        _glfwLibrary.GLX.ARB_create_context_robustness = GL_TRUE;
+        _glfw.glx.ARB_create_context_robustness = GL_TRUE;
 
     if (_glfwPlatformExtensionSupported("GLX_ARB_create_context_profile"))
-        _glfwLibrary.GLX.ARB_create_context_profile = GL_TRUE;
+        _glfw.glx.ARB_create_context_profile = GL_TRUE;
 
     if (_glfwPlatformExtensionSupported("GLX_EXT_create_context_es2_profile"))
-        _glfwLibrary.GLX.EXT_create_context_es2_profile = GL_TRUE;
+        _glfw.glx.EXT_create_context_es2_profile = GL_TRUE;
 
     return GL_TRUE;
 }
@@ -565,10 +603,10 @@ void _glfwTerminateOpenGL(void)
 {
     // Unload libGL.so if necessary
 #ifdef _GLFW_DLOPEN_LIBGL
-    if (_glfwLibrary.GLX.libGL != NULL)
+    if (_glfw.glx.libGL != NULL)
     {
-        dlclose(_glfwLibrary.GLX.libGL);
-        _glfwLibrary.GLX.libGL = NULL;
+        dlclose(_glfw.glx.libGL);
+        _glfw.glx.libGL = NULL;
     }
 #endif
 }
@@ -597,8 +635,8 @@ int _glfwCreateContext(_GLFWwindow* window,
         result = _glfwChooseFBConfig(fbconfig, fbconfigs, fbcount);
         if (!result)
         {
-            _glfwSetError(GLFW_PLATFORM_ERROR,
-                          "GLX: No GLXFBConfig matched the criteria");
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "GLX: No GLXFBConfig matched the criteria");
 
             free(fbconfigs);
             return GL_FALSE;
@@ -618,16 +656,16 @@ int _glfwCreateContext(_GLFWwindow* window,
 
 void _glfwDestroyContext(_GLFWwindow* window)
 {
-    if (window->GLX.visual)
+    if (window->glx.visual)
     {
-        XFree(window->GLX.visual);
-        window->GLX.visual = NULL;
+        XFree(window->glx.visual);
+        window->glx.visual = NULL;
     }
 
-    if (window->GLX.context)
+    if (window->glx.context)
     {
-        glXDestroyContext(_glfwLibrary.X11.display, window->GLX.context);
-        window->GLX.context = NULL;
+        glXDestroyContext(_glfw.x11.display, window->glx.context);
+        window->glx.context = NULL;
     }
 }
 
@@ -644,12 +682,12 @@ void _glfwPlatformMakeContextCurrent(_GLFWwindow* window)
 {
     if (window)
     {
-        glXMakeCurrent(_glfwLibrary.X11.display,
-                       window->X11.handle,
-                       window->GLX.context);
+        glXMakeCurrent(_glfw.x11.display,
+                       window->x11.handle,
+                       window->glx.context);
     }
     else
-        glXMakeCurrent(_glfwLibrary.X11.display, None, NULL);
+        glXMakeCurrent(_glfw.x11.display, None, NULL);
 
     _glfwCurrentWindow = window;
 }
@@ -671,7 +709,7 @@ _GLFWwindow* _glfwPlatformGetCurrentContext(void)
 
 void _glfwPlatformSwapBuffers(_GLFWwindow* window)
 {
-    glXSwapBuffers(_glfwLibrary.X11.display, window->X11.handle);
+    glXSwapBuffers(_glfw.x11.display, window->x11.handle);
 }
 
 
@@ -683,18 +721,18 @@ void _glfwPlatformSwapInterval(int interval)
 {
     _GLFWwindow* window = _glfwCurrentWindow;
 
-    if (_glfwLibrary.GLX.EXT_swap_control)
+    if (_glfw.glx.EXT_swap_control)
     {
-        _glfwLibrary.GLX.SwapIntervalEXT(_glfwLibrary.X11.display,
-                                         window->X11.handle,
-                                         interval);
+        _glfw.glx.SwapIntervalEXT(_glfw.x11.display,
+                                  window->x11.handle,
+                                  interval);
     }
-    else if (_glfwLibrary.GLX.MESA_swap_control)
-        _glfwLibrary.GLX.SwapIntervalMESA(interval);
-    else if (_glfwLibrary.GLX.SGI_swap_control)
+    else if (_glfw.glx.MESA_swap_control)
+        _glfw.glx.SwapIntervalMESA(interval);
+    else if (_glfw.glx.SGI_swap_control)
     {
         if (interval > 0)
-            _glfwLibrary.GLX.SwapIntervalSGI(interval);
+            _glfw.glx.SwapIntervalSGI(interval);
     }
 }
 
@@ -708,8 +746,8 @@ int _glfwPlatformExtensionSupported(const char* extension)
     const GLubyte* extensions;
 
     // Get list of GLX extensions
-    extensions = (const GLubyte*) glXQueryExtensionsString(_glfwLibrary.X11.display,
-                                                           _glfwLibrary.X11.screen);
+    extensions = (const GLubyte*) glXQueryExtensionsString(_glfw.x11.display,
+                                                           _glfw.x11.screen);
     if (extensions != NULL)
     {
         if (_glfwStringInExtensionString(extension, extensions))

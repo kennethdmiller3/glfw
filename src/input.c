@@ -43,7 +43,7 @@ static void setCursorMode(_GLFWwindow* window, int newMode)
         newMode != GLFW_CURSOR_HIDDEN &&
         newMode != GLFW_CURSOR_CAPTURED)
     {
-        _glfwSetError(GLFW_INVALID_ENUM, NULL);
+        _glfwInputError(GLFW_INVALID_ENUM, NULL);
         return;
     }
 
@@ -292,7 +292,7 @@ GLFWAPI int glfwGetInputMode(GLFWwindow handle, int mode)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return 0;
     }
 
@@ -307,7 +307,7 @@ GLFWAPI int glfwGetInputMode(GLFWwindow handle, int mode)
         case GLFW_TOUCH:
             return window->touchInput;
         default:
-            _glfwSetError(GLFW_INVALID_ENUM, NULL);
+            _glfwInputError(GLFW_INVALID_ENUM, NULL);
             return 0;
     }
 }
@@ -323,7 +323,7 @@ GLFWAPI void glfwSetInputMode(GLFWwindow handle, int mode, int value)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -342,7 +342,7 @@ GLFWAPI void glfwSetInputMode(GLFWwindow handle, int mode, int value)
             setTouchInput(window, value ? GL_TRUE : GL_FALSE);
             break;
         default:
-            _glfwSetError(GLFW_INVALID_ENUM, NULL);
+            _glfwInputError(GLFW_INVALID_ENUM, NULL);
             break;
     }
 }
@@ -358,14 +358,13 @@ GLFWAPI int glfwGetKey(GLFWwindow handle, int key)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return GLFW_RELEASE;
     }
 
     if (key < 0 || key > GLFW_KEY_LAST)
     {
-        _glfwSetError(GLFW_INVALID_ENUM,
-                      "glfwGetKey: The specified key is invalid");
+        _glfwInputError(GLFW_INVALID_ENUM, "The specified key is invalid");
         return GLFW_RELEASE;
     }
 
@@ -390,14 +389,14 @@ GLFWAPI int glfwGetMouseButton(GLFWwindow handle, int button)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return GLFW_RELEASE;
     }
 
     if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST)
     {
-        _glfwSetError(GLFW_INVALID_ENUM,
-                      "glfwGetMouseButton: The specified mouse button is invalid");
+        _glfwInputError(GLFW_INVALID_ENUM,
+                        "The specified mouse button is invalid");
         return GLFW_RELEASE;
     }
 
@@ -422,7 +421,7 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow handle, int* xpos, int* ypos)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -445,11 +444,11 @@ GLFWAPI void glfwSetCursorPos(GLFWwindow handle, int xpos, int ypos)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
-    if (_glfwLibrary.focusedWindow != window)
+    if (_glfw.focusedWindow != window)
         return;
 
     // Don't do anything if the cursor position did not change
@@ -479,7 +478,7 @@ GLFWAPI void glfwGetScrollOffset(GLFWwindow handle, double* xoffset, double* yof
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -501,7 +500,7 @@ GLFWAPI void glfwSetKeyCallback(GLFWwindow handle, GLFWkeyfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -519,7 +518,7 @@ GLFWAPI void glfwSetCharCallback(GLFWwindow handle, GLFWcharfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -537,7 +536,7 @@ GLFWAPI void glfwSetMouseButtonCallback(GLFWwindow handle, GLFWmousebuttonfun cb
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -555,7 +554,7 @@ GLFWAPI void glfwSetCursorPosCallback(GLFWwindow handle, GLFWcursorposfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -573,7 +572,7 @@ GLFWAPI void glfwSetCursorEnterCallback(GLFWwindow handle, GLFWcursorenterfun cb
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -591,7 +590,7 @@ GLFWAPI void glfwSetScrollCallback(GLFWwindow handle, GLFWscrollfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -609,7 +608,7 @@ GLFWAPI void glfwSetTouchCallback(GLFWwindow handle, GLFWtouchfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 
@@ -627,7 +626,7 @@ GLFWAPI void glfwSetTouchPosCallback(GLFWwindow handle, GLFWtouchposfun cbfun)
 
     if (!_glfwInitialized)
     {
-        _glfwSetError(GLFW_NOT_INITIALIZED, NULL);
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
         return;
     }
 

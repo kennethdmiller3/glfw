@@ -42,6 +42,11 @@ static void usage(void)
     printf("Usage: iconify [-h] [-f]\n");
 }
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static int window_close_callback(GLFWwindow window)
 {
     closed = GL_TRUE;
@@ -92,8 +97,13 @@ static void window_iconify_callback(GLFWwindow window, int iconified)
 int main(int argc, char** argv)
 {
     int width, height, ch;
-    int mode = GLFW_WINDOWED;
+    GLFWmonitor monitor = NULL;
     GLFWwindow window;
+
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
 
     while ((ch = getopt(argc, argv, "fh")) != -1)
     {
@@ -104,7 +114,7 @@ int main(int argc, char** argv)
                 exit(EXIT_SUCCESS);
 
             case 'f':
-                mode = GLFW_FULLSCREEN;
+                monitor = glfwGetPrimaryMonitor();
                 break;
 
             default:
@@ -113,18 +123,12 @@ int main(int argc, char** argv)
         }
     }
 
-    if (!glfwInit())
+    if (monitor)
     {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
-        exit(EXIT_FAILURE);
-    }
-
-    if (mode == GLFW_FULLSCREEN)
-    {
-        GLFWvidmode desktop_mode;
-        glfwGetDesktopMode(&desktop_mode);
-        width = desktop_mode.width;
-        height = desktop_mode.height;
+        GLFWvidmode mode;
+        glfwGetVideoMode(monitor, &mode);
+        width = mode.width;
+        height = mode.height;
     }
     else
     {
@@ -132,12 +136,10 @@ int main(int argc, char** argv)
         height = 480;
     }
 
-    window = glfwCreateWindow(width, height, mode, "Iconify", NULL);
+    window = glfwCreateWindow(width, height, "Iconify", monitor, NULL);
     if (!window)
     {
         glfwTerminate();
-
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
     }
 

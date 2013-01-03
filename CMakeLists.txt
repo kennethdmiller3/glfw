@@ -30,15 +30,6 @@ else()
     find_package(OpenGL REQUIRED)
 endif()
 
-if (NOT WIN32)
-    set(CMAKE_THREAD_PREFER_PTHREADS YES)
-endif()
-
-find_package(Threads)
-if (CMAKE_THREAD_LIBS_INIT)
-    list(APPEND glfw_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-endif()
-
 #--------------------------------------------------------------------
 # Enable all warnings on GCC, regardless of OS
 #--------------------------------------------------------------------

@@ -48,6 +48,8 @@ extern "C" {
 
 /*! @defgroup clipboard Clipboard support
  */
+/*! @defgroup context Context handling
+ */
 /*! @defgroup error Error handling
  */
 /*! @defgroup gamma Gamma ramp support
@@ -56,17 +58,16 @@ extern "C" {
  */
 /*! @defgroup input Input handling
  */
-/*! @defgroup opengl OpenGL support
+/*! @defgroup monitor Monitor handling
  */
 /*! @defgroup time Time input
  */
 /*! @defgroup window Window handling
  *
- *  The primary purpose of GLFW is to provide a simple interface to OpenGL
- *  context creation and window management.  GLFW supports multiple windows,
- *  which can be either a normal desktop window or a fullscreen window.
- */
-/*! @defgroup monitor Monitor handling
+ *  The primary purpose of GLFW is to provide a simple interface to window
+ *  management and OpenGL and OpenGL ES context creation.  GLFW supports
+ *  multiple windows, which can be either a normal desktop window or
+ *  a fullscreen window.
  */
 
 
@@ -173,7 +174,7 @@ extern "C" {
 
 /* -------------------- END SYSTEM/COMPILER SPECIFIC --------------------- */
 
-/* Include the chosen OpenGL header and, optionally, the GLU header.
+/* Include the chosen client API headers.
  */
 #if defined(__APPLE_CC__)
   #if defined(GLFW_INCLUDE_GLCOREARB)
@@ -453,102 +454,125 @@ extern "C" {
  * Other definitions
  *************************************************************************/
 
-/*! @brief A regular, overlapped window.
- *  @ingroup window
- */
-#define GLFW_WINDOWED             0x00010001
-/*! @brief A fullscreen window that may changed the monitor's resolution.
- *  @ingroup window
- */
-#define GLFW_FULLSCREEN           0x00010002
-
 /*! @defgroup paramhints Window parameters and hints
  *  @ingroup window
  *  @{ */
 
 /*! @brief @c GL_TRUE if the window has focus, or @c GL_FALSE otherwise.
+ *  @see glfwGetWindowParam
  */
 #define GLFW_FOCUSED              0x00020001
 /*! @brief @c GL_TRUE if the window is iconified, or @c GL_FALSE otherwise.
+ *  @see glfwGetWindowParam
  */
 #define GLFW_ICONIFIED            0x00020002
 /*! @brief @c GL_TRUE if the window has been requested to close, or @c GL_FALSE
  *  otherwise.
+ *  @see glfwGetWindowParam
  */
-#define GLFW_CLOSE_REQUESTED      0x00020003
-/*! @brief The OpenGL API version revision.
+#define GLFW_SHOULD_CLOSE         0x00020003
+/*! @brief The client API version revision.
+ *  @see glfwGetWindowParam
  */
-#define GLFW_OPENGL_REVISION      0x00020004
+#define GLFW_CONTEXT_REVISION     0x00020004
 
 /*! @brief The bit depth of the red component of the color buffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_RED_BITS             0x00021000
 /*! @brief The bit depth of the green component of the color buffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_GREEN_BITS           0x00021001
 /*! @brief The bit depth of the blue component of the color buffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_BLUE_BITS            0x00021002
 /*! @brief The bit depth of the alpha component of the color buffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_ALPHA_BITS           0x00021003
 /*! @brief The bit depth of the depth buffer of the default framebuffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_DEPTH_BITS           0x00021004
 /*! @brief The bit depth of the stencil buffer of the default framebuffer.
+ *  @see glfwWindowHint
  */
 #define GLFW_STENCIL_BITS         0x00021005
-/*! @brief The monitor refresh rate.
- */
-#define GLFW_REFRESH_RATE         0x00021006
 /*! @brief The bit depth of the red component of the accumulation buffer.
+ *  @see glfwWindowHint
  */
-#define GLFW_ACCUM_RED_BITS       0x00021007
+#define GLFW_ACCUM_RED_BITS       0x00021006
 /*! @brief The bit depth of the red component of the accumulation buffer.
+ *  @see glfwWindowHint
  */
-#define GLFW_ACCUM_GREEN_BITS     0x00021008
+#define GLFW_ACCUM_GREEN_BITS     0x00021007
 /*! @brief The bit depth of the red component of the accumulation buffer.
+ *  @see glfwWindowHint
  */
-#define GLFW_ACCUM_BLUE_BITS      0x00021009
+#define GLFW_ACCUM_BLUE_BITS      0x00021008
 /*! @brief The bit depth of the red component of the accumulation buffer.
+ *  @see glfwWindowHint
  */
-#define GLFW_ACCUM_ALPHA_BITS     0x0002100A
+#define GLFW_ACCUM_ALPHA_BITS     0x00021009
 /*! @brief The number of auxiliary buffers.
+ *  @see glfwWindowHint
  */
-#define GLFW_AUX_BUFFERS          0x0002100B
+#define GLFW_AUX_BUFFERS          0x0002100A
 /*! @brief @c GL_TRUE for stereo rendering, or @c GL_FALSE otherwise.
+ *  @see glfwWindowHint
  */
-#define GLFW_STEREO               0x0002100C
+#define GLFW_STEREO               0x0002100B
 /*! @brief The number of samples used for default framebuffer multisampling, or
  *  zero to disable multisampling.
+ *  @see glfwWindowHint
  */
-#define GLFW_FSAA_SAMPLES         0x0002100E
+#define GLFW_SAMPLES              0x0002100C
 /*! @brief @c GL_TRUE if the framebuffer should be sRGB capable, or @c GL_FALSE
  *  otherwise.
+ *  @see glfwWindowHint
  */
-#define GLFW_SRGB_CAPABLE         0x0002100F
+#define GLFW_SRGB_CAPABLE         0x0002100D
 
 /*! @brief The @link clients client API @endlink to create a context for.
+ *  @see glfwWindowHint glfwGetWindowParam
  */
 #define GLFW_CLIENT_API           0x00022000
-#define GLFW_OPENGL_VERSION_MAJOR 0x00022001
-#define GLFW_OPENGL_VERSION_MINOR 0x00022002
-#define GLFW_OPENGL_FORWARD_COMPAT 0x00022003
-#define GLFW_OPENGL_DEBUG_CONTEXT 0x00022004
-#define GLFW_OPENGL_PROFILE       0x00022005
-#define GLFW_OPENGL_ROBUSTNESS    0x00022006
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_CONTEXT_VERSION_MAJOR 0x00022001
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_CONTEXT_VERSION_MINOR 0x00022002
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_CONTEXT_ROBUSTNESS   0x00022003
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_OPENGL_FORWARD_COMPAT 0x00022004
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_OPENGL_DEBUG_CONTEXT 0x00022005
+/*! @see glfwWindowHint glfwGetWindowParam
+ */
+#define GLFW_OPENGL_PROFILE       0x00022006
 /*! @brief @c GL_TRUE if the window is resizable, or @c GL_FALSE otherwise.
+ *  @see glfwWindowHint glfwGetWindowParam
  */
 #define GLFW_RESIZABLE            0x00022007
 /*! @brief @c GL_TRUE if the window is visible, or @c GL_FALSE otherwise.
+ *  @see glfwWindowHint glfwGetWindowParam
  */
 #define GLFW_VISIBLE              0x00022008
 /*! @brief The x-coordinate, in pixels, of the upper-left corner of the
  *  client area of the window.
+ *  @see glfwWindowHint glfwGetWindowParam
  */
 #define GLFW_POSITION_X           0x00022009
 /*! @brief The y-coordinate, in pixels, of the upper-left corner of the
  *  client area of the window.
+ *  @see glfwWindowHint glfwGetWindowParam
  */
 #define GLFW_POSITION_Y           0x0002200A
 
@@ -557,45 +581,45 @@ extern "C" {
 /*! @name Client APIs
  *  @{ */
 /*! @brief The OpenGL API.
- *  @ingroup opengl
+ *  @ingroup context
  */
 #define GLFW_OPENGL_API           0x00000001
 /*! @brief The OpenGL ES API.
- *  @ingroup opengl
+ *  @ingroup context
  */
 #define GLFW_OPENGL_ES_API        0x00000002
 /*! @} */
 
-/*! @name OpenGL robustness strategies
+/*! @name Context robustness strategies
  *  @{ */
 /*! @brief No robustness strategy is used.
  *
  *  This is the default.
- *  @ingroup opengl
+ *  @ingroup context
  */
-#define GLFW_OPENGL_NO_ROBUSTNESS         0x00000000
+#define GLFW_NO_ROBUSTNESS         0x00000000
 /*! @brief 
- *  @ingroup opengl
+ *  @ingroup context
  */
-#define GLFW_OPENGL_NO_RESET_NOTIFICATION 0x00000001
+#define GLFW_NO_RESET_NOTIFICATION 0x00000001
 /*! @brief 
- *  @ingroup opengl
+ *  @ingroup context
  */
-#define GLFW_OPENGL_LOSE_CONTEXT_ON_RESET 0x00000002
+#define GLFW_LOSE_CONTEXT_ON_RESET 0x00000002
 /*! @} */
 
 /*! @name OpenGL profiles
  *  @{ */
 /*! @brief No OpenGL profile.
- *  @ingroup opengl
+ *  @ingroup context
  */
 #define GLFW_OPENGL_NO_PROFILE    0x00000000
 /*! @brief The OpenGL core profile.
- *  @ingroup opengl
+ *  @ingroup context
  */
 #define GLFW_OPENGL_CORE_PROFILE  0x00000001
 /*! @brief The OpenGL compatibility profile.
- *  @ingroup opengl
+ *  @ingroup context
  */
 #define GLFW_OPENGL_COMPAT_PROFILE 0x00000002
 /*! @} */
@@ -680,7 +704,7 @@ extern "C" {
  *  system.
  */
 #define GLFW_API_UNAVAILABLE      0x00070006
-/*! @brief The requested OpenGL or GLES version is not available.
+/*! @brief The requested client API version is not available.
  */
 #define GLFW_VERSION_UNAVAILABLE  0x00070007
 /*! @brief A platform-specific error occurred that does not match any of the
@@ -697,15 +721,53 @@ extern "C" {
  */
 #define GLFW_GAMMA_RAMP_SIZE      256
 
+/*! @name Monitor parameters
+ *  @{ */
+/*! @brief The physical width, in mm, of the monitor.
+ *  @ingroup monitor
+ */
+#define GLFW_MONITOR_WIDTH_MM         0x00060001
+/*! @brief The physical height, in mm, of the monitor.
+ *  @ingroup monitor
+ */
+#define GLFW_MONITOR_HEIGHT_MM        0x00060002
+/*! @brief The x-coordinate of the upper-left corner of the monitor on the
+ *  virtual desktop.
+ *  @ingroup monitor
+ */
+#define GLFW_MONITOR_POS_X            0x00060003
+/*! @brief The y-coordinate of the upper-left corner of the monitor on the
+ *  virtual desktop.
+ *  @ingroup monitor
+ */
+#define GLFW_MONITOR_POS_Y            0x00060004
+/* @} */
+
+/*! @name Monitor events
+ *  @{ */
+/*! @brief The monitor was connected.
+ *  @ingroup monitor
+ */
+#define GLFW_CONNECTED                0x00061000
+/*! @brief The monitor was disconnected.
+ *  @ingroup monitor
+ */
+#define GLFW_DISCONNECTED             0x00061001
+/* @} */
 
 /*************************************************************************
  * Typedefs
  *************************************************************************/
 
-/*! @brief OpenGL function pointer type.
- *  @ingroup opengl
+/*! @brief Client API function pointer type.
+ *  @ingroup context
  */
 typedef void (*GLFWglproc)(void);
+
+/*! @brief Monitor handle type.
+ *  @ingroup monitor
+ */
+typedef void* GLFWmonitor;
 
 /*! @brief Window handle type.
  *  @ingroup window
@@ -834,6 +896,13 @@ typedef void (* GLFWtouchfun)(GLFWwindow,int,int);
  */
 typedef void (* GLFWtouchposfun)(GLFWwindow,int,double,double);
 
+/*! @brief The function signature for monitor configuration callbacks.
+ *  @param[in] monitor The monitor that was connected or disconnected.
+ *  @param[in] event @ref GLFW_MONITOR_CONNECTED or @ref
+ *  GLFW_MONITOR_DISCONNECTED.
+ */
+typedef void (* GLFWmonitorfun)(GLFWmonitor,int);
+
 /* @brief Video mode type.
  * @ingroup monitor
  */
@@ -934,25 +1003,6 @@ GLFWAPI void glfwGetVersion(int* major, int* minor, int* rev);
  */
 GLFWAPI const char* glfwGetVersionString(void);
 
-/*! @brief Retrieves the latest error.
- *  @return The latest @link errors error code @endlink.
- *  @ingroup error
- *
- *  @remarks This function may be called before @ref glfwInit.
- */
-GLFWAPI int glfwGetError(void);
-
-/*! @brief Retrieves a generic, human readable description of the specified error.
- *  @param[in] error The @link errors error code @endlink to be described.
- *  @return A UTF-8 encoded string describing the error.
- *  @ingroup error
- *
- *  @remarks This function may be called before @ref glfwInit.
- *
- *  @remarks This function may be called from secondary threads.
- */
-GLFWAPI const char* glfwErrorString(int error);
-
 /*! @brief Sets the error callback.
  *  @param[in] cbfun The new callback, or @c NULL to remove the currently set
  *  callback.
@@ -971,17 +1021,51 @@ GLFWAPI const char* glfwErrorString(int error);
  */
 GLFWAPI void glfwSetErrorCallback(GLFWerrorfun cbfun);
 
-/*! @brief This function will be replaced when the @c multi-monitor branch is
- *  merged.
+/*! @brief Returns the currently connected monitors.
+ *  @param[out] count The size of the returned array.
+ *  @return An array of monitor handles.
  *  @ingroup monitor
  */
-GLFWAPI GLFWvidmode* glfwGetVideoModes(int* count);
+GLFWAPI const GLFWmonitor* glfwGetMonitors(int* count);
 
-/*! @brief This function will be replaced when the @c multi-monitor branch is
- *  merged.
+/*! @brief Returns the primary monitor.
+ *  @return The primary monitor.
  *  @ingroup monitor
  */
-GLFWAPI void glfwGetDesktopMode(GLFWvidmode* mode);
+GLFWAPI GLFWmonitor glfwGetPrimaryMonitor(void);
+
+/*! @brief Returns a property of the specified monitor.
+ *  @ingroup monitor
+ */
+GLFWAPI int glfwGetMonitorParam(GLFWmonitor monitor, int param);
+
+/*! @brief Returns the name of the specified monitor.
+ *  @param[in] monitor The monitor to query.
+ *  @return The UTF-8 encoded name of the monitor.
+ *  @ingroup monitor
+ */
+GLFWAPI const char* glfwGetMonitorName(GLFWmonitor monitor);
+
+/*! @brief Sets the monitor configuration callback.
+ *  @param[in] cbfun The new callback, or @c NULL to remove the currently set.
+ *  @ingroup monitor
+ */
+GLFWAPI void glfwSetMonitorCallback(GLFWmonitorfun cbfun);
+
+/*! @brief Returns the available video modes for the specified monitor.
+ *  @param[in] monitor The monitor to query.
+ *  @param[out] count The number of video modes in the returned array.
+ *  @return An array of video modes.
+ *  @ingroup monitor
+ */
+GLFWAPI const GLFWvidmode* glfwGetVideoModes(GLFWmonitor monitor, int* count);
+
+/*! @brief Returns the current mode of the specified monitor.
+ *  @param[in] monitor The monitor to query.
+ *  @param[out] mode The current mode of the monitor.
+ *  @ingroup monitor
+ */
+GLFWAPI void glfwGetVideoMode(GLFWmonitor monitor, GLFWvidmode* mode);
 
 /*! @brief Sets the system gamma ramp to one generated from the specified
  *  exponent.
@@ -1013,8 +1097,10 @@ GLFWAPI void glfwSetGammaRamp(const GLFWgammaramp* ramp);
  *
  *  The @ref GLFW_CLIENT_API hint is set to @ref GLFW_OPENGL_API.
  *
- *  The @ref GLFW_OPENGL_VERSION_MAJOR and @ref GLFW_OPENGL_VERSION_MINOR hints
- *  are set to 1 and 0, respectively.
+ *  The @ref GLFW_CONTEXT_VERSION_MAJOR and @ref GLFW_CONTEXT_VERSION_MINOR
+ *  hints are set to 1 and 0, respectively.
+ *
+ *  The @ref GLFW_CONTEXT_ROBUSTNESS hint is set to @ref GLFW_NO_ROBUSTNESS.
  *
  *  All other hints are set to 0.
  *
@@ -1031,13 +1117,35 @@ GLFWAPI void glfwDefaultWindowHints(void);
  *  @param[in] target The new value of the window hint.
  *  @ingroup window
  *
+ *  This function sets hints for the next call to @ref glfwCreateWindow.  The
+ *  hints, once set, retain their values until changed by a call to @ref
+ *  glfwWindowHint or @ref glfwDefaultWindowHints, or until the library is
+ *  terminated with @ref glfwTerminate.
+ *
+ *  Some window hints are hard constraints.  These must match the available
+ *  capabilities @em exactly for window and context creation to succeed.  Hints
+ *  that are not hard constraints are matched as closely as possible, but the
+ *  resulting window and context may differ from what these hints requested.  To
+ *  find out the actual properties of the created window and context, use the
+ *  @ref glfwGetWindowParam function.
+ *
+ *  The following hints are hard constraints:
+ *  @arg @ref GLFW_STEREO
+ *  @arg @ref GLFW_CLIENT_API
+ *
+ *  The following additional hints are hard constraints if requesting an OpenGL
+ *  context:
+ *  @arg @ref GLFW_OPENGL_FORWARD_COMPAT
+ *  @arg @ref GLFW_OPENGL_PROFILE
+ *
+ *  Hints that do not apply to a given type of window or context are ignored.
+ *
+ *  @par Framebuffer hints
+ *
  *  The @ref GLFW_RED_BITS, @ref GLFW_GREEN_BITS, @ref GLFW_BLUE_BITS, @ref
  *  GLFW_ALPHA_BITS, @ref GLFW_DEPTH_BITS and @ref GLFW_STENCIL_BITS hints
  *  specify the desired bit depths of the various components of the default
  *  framebuffer.
- *
- *  The @ref GLFW_REFRESH_RATE hint specifies the desired monitor refresh rate
- *  for fullscreen windows.
  *
  *  The @ref GLFW_ACCUM_RED_BITS, @ref GLFW_ACCUM_GREEN_BITS, @ref
  *  GLFW_ACCUM_BLUE_BITS and @ref GLFW_ACCUM_ALPHA_BITS hints specify the
@@ -1048,40 +1156,53 @@ GLFWAPI void glfwDefaultWindowHints(void);
  *
  *  The @ref GLFW_STEREO hint specifies whether to use stereoscopic rendering.
  *
- *  The @ref GLFW_FSAA_SAMPLES hint specifies the desired number of samples to
- *  use for multisampling.
+ *  The @ref GLFW_SAMPLES hint specifies the desired number of samples to use
+ *  for multisampling.
  *
  *  The @ref GLFW_SRGB_CAPABLE hint specifies whether the framebuffer should be
  *  sRGB capable.
+ *
+ *  @par Context hints
  *
  *  The @ref GLFW_CLIENT_API hint specifies which client API to create the
  *  context for.  Possible values are @ref GLFW_OPENGL_API and @ref
  *  GLFW_OPENGL_ES_API.
  *
- *  The @ref GLFW_OPENGL_VERSION_MAJOR and @ref GLFW_OPENGL_VERSION_MINOR hints
- *  specify the OpenGL version that the created context must be compatible with.
+ *  The @ref GLFW_CONTEXT_VERSION_MAJOR and @ref GLFW_CONTEXT_VERSION_MINOR
+ *  hints specify the client API version that the created context must be
+ *  compatible with.
  *
- *  These hints are @em not hard constraints, as they don't have to match
- *  exactly, but @ref glfwCreateWindow will still fail if the resulting OpenGL
- *  version is less than the one requested with hints.  It is therefore
- *  perfectly safe to use the default of version 1.0 for legacy code and you
- *  will still get backwards-compatible contexts of version 3.0 and above when
- *  available.
+ *  For OpenGL, these hints are @em not hard constraints, as they don't have to
+ *  match exactly, but @ref glfwCreateWindow will still fail if the resulting
+ *  OpenGL version is less than the one requested.  It is therefore perfectly
+ *  safe to use the default of version 1.0 for legacy code and you will still
+ *  get backwards-compatible contexts of version 3.0 and above when available.
  *
- *  The @ref GLFW_OPENGL_FORWARD_COMPAT hint specifies whether the OpenGL
- *  context should be forward-compatible, i.e. one where all functionality
- *  deprecated in the requested version of OpenGL is removed.
+ *  For OpenGL ES, these hints are hard constraints, as there is no backward
+ *  compatibility between OpenGL ES versions.
  *
- *  The @ref GLFW_OPENGL_DEBUG_CONTEXT hint specifies whether to create a debug
- *  OpenGL context, which may have additional error and performance issue
- *  reporting functionality.
+ *  If an OpenGL context is requested, the @ref GLFW_OPENGL_FORWARD_COMPAT hint
+ *  specifies whether the OpenGL context should be forward-compatible, i.e. one
+ *  where all functionality deprecated in the requested version of OpenGL is
+ *  removed.  This may only be used if the requested OpenGL version is 3.0 or
+ *  above.  If another client API is requested, this hint is ignored.
  *
- *  The @ref GLFW_OPENGL_PROFILE hint specifies which OpenGL profile to create
- *  the context for.  Possible values are @ref GLFW_OPENGL_NO_PROFILE, @ref
- *  GLFW_OPENGL_CORE_PROFILE and @ref GLFW_OPENGL_COMPAT_PROFILE.
+ *  If an OpenGL context is requested, the @ref GLFW_OPENGL_DEBUG_CONTEXT hint
+ *  specifies whether to create a debug OpenGL context, which may have
+ *  additional error and performance issue reporting functionality.  If another
+ *  client API is requested, this hint is ignored.
  *
- *  The @ref GLFW_OPENGL_ROBUSTNESS hint specifies the robustness strategy to be
- *  used by the OpenGL context.
+ *  If an OpenGL context is requested, the @ref GLFW_OPENGL_PROFILE hint
+ *  specifies which OpenGL profile to create the context for.  Possible values
+ *  are @ref GLFW_OPENGL_NO_PROFILE, @ref GLFW_OPENGL_CORE_PROFILE and @ref
+ *  GLFW_OPENGL_COMPAT_PROFILE.  This may only be used if the requested OpenGL
+ *  version is 3.2 or above.  If another client API is requested, this hint
+ *  is ignored.
+ *
+ *  The @ref GLFW_CONTEXT_ROBUSTNESS hint specifies the robustness strategy to
+ *  be used by the context.
+ *
+ *  @par Window hints
  *
  *  The @ref GLFW_RESIZABLE hint specifies whether the window will be resizable
  *  by the user.  The window will still be resizable using the @ref
@@ -1092,19 +1213,6 @@ GLFWAPI void glfwDefaultWindowHints(void);
  *
  *  The @ref GLFW_POSITION_X and @ref GLFW_POSITION_Y hints specify the initial
  *  position of the window.  These hints are ignored for fullscreen windows.
- *
- *  Some window hints are hard constraints.  These must match the available
- *  capabilities @em exactly for window and context creation to succeed.  Hints
- *  that are not hard constraints are matched as closely as possible, but the
- *  resulting window and context may differ from what these hints requested.  To
- *  find out the actual properties of the created window and context, use the
- *  @ref glfwGetWindowParam function.
- *
- *  The following window hints are hard constraints:
- *  @arg @ref GLFW_STEREO
- *  @arg @ref GLFW_CLIENT_API
- *  @arg @ref GLFW_OPENGL_FORWARD_COMPAT
- *  @arg @ref GLFW_OPENGL_PROFILE
  *
  *  @note This function may only be called from the main thread.
  *
@@ -1118,8 +1226,9 @@ GLFWAPI void glfwWindowHint(int target, int hint);
  *  greater than zero.
  *  @param[in] height The desired height, in pixels, of the window.  This must
  *  be greater than zero.
- *  @param[in] mode One of @ref GLFW_WINDOWED or @ref GLFW_FULLSCREEN.
  *  @param[in] title The initial, UTF-8 encoded window title.
+ *  @param[in] monitor The monitor to use for fullscreen mode, or @c NULL to use
+ *  windowed mode.
  *  @param[in] share The window whose context to share resources with, or @c
  *  NULL to not share resources.
  *  @return The handle of the created window, or @c NULL if an error occurred.
@@ -1155,7 +1264,7 @@ GLFWAPI void glfwWindowHint(int target, int hint);
  *
  *  @sa glfwDestroyWindow
  */
-GLFWAPI GLFWwindow glfwCreateWindow(int width, int height, int mode, const char* title, GLFWwindow share);
+GLFWAPI GLFWwindow glfwCreateWindow(int width, int height, const char* title, GLFWmonitor monitor, GLFWwindow share);
 
 /*! @brief Destroys the specified window and its context.
  *  @param[in] window The window to destroy.
@@ -1165,6 +1274,10 @@ GLFWAPI GLFWwindow glfwCreateWindow(int width, int height, int mode, const char*
  *
  *  @note If the window's context is current on the main thread, it is
  *  detached before being destroyed.
+ *
+ *  @note On calling this function, no further callbacks will be called for
+ *  the specified window, even if their associated events occur during window
+ *  destruction.
  *
  *  @warning The window's context must not be current on any other thread.
  *
@@ -1259,6 +1372,13 @@ GLFWAPI void glfwShowWindow(GLFWwindow window);
  */
 GLFWAPI void glfwHideWindow(GLFWwindow window);
 
+/*! @brief Returns the monitor that the window uses for fullscreen mode
+ *  @param[in] window The window to query.
+ *  @return The monitor, or @c NULL if the window is in windowed mode.
+ *  @ingroup window
+ */
+GLFWAPI GLFWmonitor glfwGetWindowMonitor(GLFWwindow window);
+
 /*! @brief Returns a property of the specified window.
  *  @param[in] window The window to query.
  *  @param[in] param The property whose value to return.
@@ -1273,11 +1393,8 @@ GLFWAPI void glfwHideWindow(GLFWwindow window);
  *  The @ref GLFW_RESIZABLE property indicates whether the window is resizable
  *  by the user.
  *
- *  The @ref GLFW_CLOSE_REQUESTED property indicates whether the window has been
+ *  The @ref GLFW_SHOULD_CLOSE property indicates whether the window has been
  *  requested by the user to close.
- *
- *  The @ref GLFW_REFRESH_RATE property will be replaced when the @c
- *  multi-monitor branch is merged.
  *
  *  The @ref GLFW_POSITION_X and @ref GLFW_POSITION_Y properties indicate the
  *  screen position, in pixels, of the upper-left corner of the window's client
@@ -1286,9 +1403,9 @@ GLFWAPI void glfwHideWindow(GLFWwindow window);
  *  The @ref GLFW_CLIENT_API property indicates the client API provided by the
  *  window's context.
  *
- *  The @ref GLFW_OPENGL_VERSION_MAJOR, @ref GLFW_OPENGL_VERSION_MINOR and @ref
- *  GLFW_OPENGL_REVISION properties indicate the API version of the window's
- *  context.
+ *  The @ref GLFW_CONTEXT_VERSION_MAJOR, @ref GLFW_CONTEXT_VERSION_MINOR and
+ *  @ref GLFW_CONTEXT_REVISION properties indicate the client API version of the
+ *  window's context.
  *
  *  The @ref GLFW_OPENGL_FORWARD_COMPAT property indicates whether an OpenGL
  *  context is forward-compatible.
@@ -1300,9 +1417,8 @@ GLFWAPI void glfwHideWindow(GLFWwindow window);
  *  OpenGL context, or @ref GLFW_OPENGL_NO_PROFILE if the context is for another
  *  client API than OpenGL.
  *
- *  The @ref GLFW_OPENGL_ROBUSTNESS property indicates the robustness strategy
- *  used by the OpenGL context, or @ref GLFW_OPENGL_NO_ROBUSTNESS if robustness
- *  is not used.
+ *  The @ref GLFW_CONTEXT_ROBUSTNESS property indicates the robustness strategy
+ *  used by the context, or @ref GLFW_NO_ROBUSTNESS if robustness is not used.
  */
 GLFWAPI int glfwGetWindowParam(GLFWwindow window, int param);
 
@@ -1353,7 +1469,7 @@ GLFWAPI void glfwSetWindowSizeCallback(GLFWwindow window, GLFWwindowsizefun cbfu
  *  callback to be called.
  *
  *  The return value of the close callback becomes the new value of the @ref
- *  GLFW_CLOSE_REQUESTED window parameter.
+ *  GLFW_SHOULD_CLOSE window parameter.
  */
 GLFWAPI void glfwSetWindowCloseCallback(GLFWwindow window, GLFWwindowclosefun cbfun);
 
@@ -1641,7 +1757,7 @@ GLFWAPI void glfwSetTime(double time);
 /*! @brief Makes the context of the specified window current for this thread.
  *  @param[in] window The window whose context to make current, or @c NULL to
  *  detach the current context.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  *
@@ -1654,7 +1770,7 @@ GLFWAPI void glfwMakeContextCurrent(GLFWwindow window);
 /*! @brief Returns the window whose context is current on this thread.
  *  @return The window whose context is current, or @c NULL if no window's
  *  context is current.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  *
@@ -1664,7 +1780,7 @@ GLFWAPI GLFWwindow glfwGetCurrentContext(void);
 
 /*! @brief Swaps the front and back buffers of the specified window.
  *  @param[in] The window whose buffers to swap.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  *
@@ -1675,7 +1791,7 @@ GLFWAPI void glfwSwapBuffers(GLFWwindow window);
 /*! @brief Sets the swap interval for the current context.
  *  @param[in] interval The minimum number of video frame periods to wait for
  *  until the buffers are swapped by @ref glfwSwapBuffers.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  *
@@ -1686,7 +1802,7 @@ GLFWAPI void glfwSwapInterval(int interval);
 /*! @brief Checks whether the specified extension is available.
  *  @param[in] extension The ASCII encoded name of the extension.
  *  @return @c GL_TRUE if the extension is available, or @c FALSE otherwise.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  *
@@ -1700,7 +1816,7 @@ GLFWAPI int glfwExtensionSupported(const char* extension);
  *  @param[in] procname The ASCII encoded name of the function.
  *  @return The address of the function, or @c NULL if the function is
  *  unavailable.
- *  @ingroup opengl
+ *  @ingroup context
  *
  *  @remarks This function may be called from secondary threads.
  */

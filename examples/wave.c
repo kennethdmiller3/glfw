@@ -258,6 +258,16 @@ void calc_grid(void)
 
 
 //========================================================================
+// Print errors
+//========================================================================
+
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
+
+//========================================================================
 // Handle key strokes
 //========================================================================
 
@@ -393,16 +403,15 @@ int main(int argc, char* argv[])
     double t, dt_total, t_old;
     int width, height;
 
-    if (!glfwInit())
-    {
-        fprintf(stderr, "GLFW initialization failed\n");
-        exit(EXIT_FAILURE);
-    }
+    glfwSetErrorCallback(error_callback);
 
-    window = glfwCreateWindow(640, 480, GLFW_WINDOWED, "Wave Simulation", NULL);
+    if (!glfwInit())
+        exit(EXIT_FAILURE);
+
+    window = glfwCreateWindow(640, 480, "Wave Simulation", NULL, NULL);
     if (!window)
     {
-        fprintf(stderr, "Could not open window\n");
+        glfwTerminate();
         exit(EXIT_FAILURE);
     }
 

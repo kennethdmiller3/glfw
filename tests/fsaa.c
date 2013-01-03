@@ -38,6 +38,11 @@
 
 #include "getopt.h"
 
+static void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
 static void window_size_callback(GLFWwindow window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -82,25 +87,22 @@ int main(int argc, char** argv)
         }
     }
 
+    glfwSetErrorCallback(error_callback);
+
     if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
-    }
 
     if (samples)
         printf("Requesting FSAA with %i samples\n", samples);
     else
         printf("Requesting that FSAA not be available\n");
 
-    glfwWindowHint(GLFW_FSAA_SAMPLES, samples);
+    glfwWindowHint(GLFW_SAMPLES, samples);
 
-    window = glfwCreateWindow(800, 400, GLFW_WINDOWED, "Aliasing Detector", NULL);
+    window = glfwCreateWindow(800, 400, "Aliasing Detector", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
-
-        fprintf(stderr, "Failed to open GLFW window: %s\n", glfwErrorString(glfwGetError()));
         exit(EXIT_FAILURE);
     }
 
@@ -113,8 +115,6 @@ int main(int argc, char** argv)
     if (!glfwExtensionSupported("GL_ARB_multisample"))
     {
         glfwTerminate();
-
-        fprintf(stderr, "Context reports GL_ARB_multisample is not supported\n");
         exit(EXIT_FAILURE);
     }
 
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
     gluOrtho2D(0.f, 1.f, 0.f, 0.5f);
     glMatrixMode(GL_MODELVIEW);
 
-    while (!glfwGetWindowParam(window, GLFW_CLOSE_REQUESTED))
+    while (!glfwGetWindowParam(window, GLFW_SHOULD_CLOSE))
     {
         GLfloat time = (GLfloat) glfwGetTime();
 
