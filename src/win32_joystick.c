@@ -149,7 +149,7 @@ int _glfwPlatformGetJoystickAxes(int joy, float* axes, int numaxes)
         axes[axis++] = calcJoystickPos(ji.dwXpos, jc.wXmin, jc.wXmax);
 
     if (axis < numaxes)
-        axes[axis++] = -calcJoystickPos(ji.dwYpos, jc.wYmin, jc.wYmax);
+        axes[axis++] = calcJoystickPos(ji.dwYpos, jc.wYmin, jc.wYmax);
 
     if (axis < numaxes && jc.wCaps & JOYCAPS_HASZ)
         axes[axis++] = calcJoystickPos(ji.dwZpos, jc.wZmin, jc.wZmax);
@@ -161,7 +161,7 @@ int _glfwPlatformGetJoystickAxes(int joy, float* axes, int numaxes)
         axes[axis++] = calcJoystickPos(ji.dwUpos, jc.wUmin, jc.wUmax);
 
     if (axis < numaxes && jc.wCaps & JOYCAPS_HASV)
-        axes[axis++] = -calcJoystickPos(ji.dwVpos, jc.wVmin, jc.wVmax);
+        axes[axis++] = calcJoystickPos(ji.dwVpos, jc.wVmin, jc.wVmax);
 
     return axis;
 }
