@@ -199,8 +199,7 @@ static GLboolean createWindow(_GLFWwindow* window,
         if (wndconfig->monitor)
         {
             hints->flags |= PPosition;
-            hints->x = wndconfig->monitor->positionX;
-            hints->y = wndconfig->monitor->positionY;
+            _glfwPlatformGetMonitorPos(wndconfig->monitor, &hints->x, &hints->y);
         }
 
         if (!wndconfig->resizable)
@@ -1037,25 +1036,14 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 
 GLFWAPI Display* glfwGetX11Display(void)
 {
-    if (!_glfwInitialized)
-    {
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
-        return NULL;
-    }
-
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
     return _glfw.x11.display;
 }
 
 GLFWAPI Window glfwGetX11Window(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-
-    if (!_glfwInitialized)
-    {
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
-        return 0;
-    }
-
+    _GLFW_REQUIRE_INIT_OR_RETURN(None);
     return window->x11.handle;
 }
 

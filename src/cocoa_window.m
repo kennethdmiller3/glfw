@@ -257,7 +257,7 @@ static int convertMacKeyCode(unsigned int macKeyCode)
         /* 66 */ -1,
         /* 67 */ GLFW_KEY_F11,
         /* 68 */ -1,
-        /* 69 */ GLFW_KEY_F13,
+        /* 69 */ GLFW_KEY_PRINT_SCREEN,
         /* 6a */ GLFW_KEY_F16,
         /* 6b */ GLFW_KEY_F14,
         /* 6c */ -1,
@@ -515,6 +515,8 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 @end
 
+#if defined(_GLFW_USE_MENUBAR)
+
 // Try to figure out what the calling application is called
 //
 static NSString* findAppName(void)
@@ -556,8 +558,6 @@ static NSString* findAppName(void)
     // Really shouldn't get here
     return @"GLFW Application";
 }
-
-#if defined(_GLFW_USE_MENUBAR)
 
 // Set up the menu bar (manually)
 // This is nasty, nasty stuff -- calls to undocumented semi-private APIs that
@@ -770,9 +770,11 @@ void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 
     if (window->monitor)
     {
-        [[window->ns.object contentView] exitFullScreenModeWithOptions:nil];
-
         _glfwRestoreVideoMode(window->monitor);
+
+        // Exit full screen after the video restore to avoid a nasty display
+        // flickering during the fade.
+        [[window->ns.object contentView] exitFullScreenModeWithOptions:nil];
     }
 
     _glfwDestroyContext(window);
@@ -930,13 +932,7 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 GLFWAPI id glfwGetCocoaWindow(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-
-    if (!_glfwInitialized)
-    {
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL);
-        return 0;
-    }
-
+    _GLFW_REQUIRE_INIT_OR_RETURN(nil);
     return window->ns.object;
 }
 

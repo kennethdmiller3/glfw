@@ -109,6 +109,20 @@ typedef struct _GLFWmonitor     _GLFWmonitor;
 // Internal key state used for sticky keys
 #define _GLFW_STICK 3
 
+// Checks for whether the library has been intitalized
+#define _GLFW_REQUIRE_INIT()                         \
+    if (!_glfwInitialized)                           \
+    {                                                \
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        return;                                      \
+    }
+#define _GLFW_REQUIRE_INIT_OR_RETURN(x)              \
+    if (!_glfwInitialized)                           \
+    {                                                \
+        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        return x;                                    \
+    }
+
 
 //========================================================================
 // Internal types
@@ -259,8 +273,6 @@ struct _GLFWmonitor
 
     // Physical dimensions in millimeters.
     int             widthMM, heightMM;
-    // Logical orientation of the screen on the desktop
-    int             positionX, positionY;
 
     GLFWvidmode*    modes;
     int             modeCount;
@@ -349,9 +361,10 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode);
  */
 _GLFWmonitor** _glfwPlatformGetMonitors(int* count);
 
-/*! @ingroup platform
+/*! @copydoc glfwGetMonitorPos
+ *  @ingroup platform
  */
-void _glfwPlatformDestroyMonitor(_GLFWmonitor* monitor);
+void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos);
 
 /*! @copydoc glfwGetVideoModes
  *  @ingroup platform
@@ -683,9 +696,7 @@ GLboolean _glfwIsValidContext(_GLFWwndconfig* wndconfig);
 
 /*! @ingroup utility
  */
-_GLFWmonitor* _glfwCreateMonitor(const char* name,
-                                 int widthMM, int heightMM,
-                                 int x, int y);
+_GLFWmonitor* _glfwCreateMonitor(const char* name, int widthMM, int heightMM);
 
 /*! @ingroup utility
   */

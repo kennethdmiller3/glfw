@@ -122,6 +122,29 @@ static GLFWvidmode vidmodeFromCGDisplayMode(CGDisplayModeRef mode)
     return result;
 }
 
+// Starts reservation for display fading
+//
+static CGDisplayFadeReservationToken beginFadeReservation(void)
+{
+    CGDisplayFadeReservationToken token = kCGDisplayFadeReservationInvalidToken;
+
+    if (CGAcquireDisplayFadeReservation(5, &token) == kCGErrorSuccess)
+        CGDisplayFade(token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
+
+    return token;
+}
+
+// Ends reservation for display fading
+//
+static void endFadeReservation(CGDisplayFadeReservationToken token)
+{
+    if (token != kCGDisplayFadeReservationInvalidToken)
+    {
+        CGDisplayFade(token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
+        CGReleaseDisplayFadeReservation(token);
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
@@ -182,8 +205,12 @@ GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, int* width, int* height, int*
 
     monitor->ns.previousMode = CGDisplayCopyDisplayMode(monitor->ns.displayID);
 
+    CGDisplayFadeReservationToken token = beginFadeReservation();
+
     CGDisplayCapture(monitor->ns.displayID);
     CGDisplaySetDisplayMode(monitor->ns.displayID, bestMode, NULL);
+
+    endFadeReservation(token);
 
     CFRelease(modes);
     return GL_TRUE;
@@ -193,8 +220,12 @@ GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, int* width, int* height, int*
 //
 void _glfwRestoreVideoMode(_GLFWmonitor* monitor)
 {
+    CGDisplayFadeReservationToken token = beginFadeReservation();
+
     CGDisplaySetDisplayMode(monitor->ns.displayID, monitor->ns.previousMode, NULL);
     CGDisplayRelease(monitor->ns.displayID);
+
+    endFadeReservation(token);
 }
 
 
@@ -231,11 +262,9 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
     for (i = 0;  i < monitorCount;  i++)
     {
         const CGSize size = CGDisplayScreenSize(displays[i]);
-        const CGRect bounds = CGDisplayBounds(displays[i]);
 
         monitors[found] = _glfwCreateMonitor(getDisplayName(displays[i]),
-                                             size.width, size.height,
-                                             bounds.origin.x, bounds.origin.y);
+                                             size.width, size.height);
 
         monitors[found]->ns.displayID = displays[i];
         found++;
@@ -258,8 +287,14 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
     return monitors;
 }
 
-void _glfwPlatformDestroyMonitor(_GLFWmonitor* monitor)
+void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos)
 {
+    const CGRect bounds = CGDisplayBounds(monitor->ns.displayID);
+
+    if (xpos)
+        *xpos = (int) bounds.origin.x;
+    if (ypos)
+        *ypos = (int) bounds.origin.y;
 }
 
 GLFWvidmode* _glfwPlatformGetVideoModes(_GLFWmonitor* monitor, int* found)
