@@ -592,9 +592,11 @@ typedef void (* GLFWwindowsizefun)(GLFWwindow*,int,int);
 
 /*! @brief The function signature for window close callbacks.
  *  @param[in] window The window that the user attempted to close.
- *  @return @c GL_TRUE to allow the window to be closed, or @c GL_FALSE to
- *  ignore the attempt.
+ *  @return One of @c GL_TRUE or @c GL_FALSE.
  *  @ingroup window
+ *
+ *  The return value of the close callback becomes the new value of the @c
+ *  GLFW_SHOULD_CLOSE window parameter.
  *
  *  @sa glfwSetWindowCloseCallback
  */
@@ -687,7 +689,7 @@ typedef void (* GLFWkeyfun)(GLFWwindow*,int,int);
  *
  *  @sa glfwSetCharCallback
  */
-typedef void (* GLFWcharfun)(GLFWwindow*,int);
+typedef void (* GLFWcharfun)(GLFWwindow*,unsigned int);
 
 /*! @brief The function signature for monitor configuration callbacks.
  *  @param[in] monitor The monitor that was connected or disconnected.
@@ -820,7 +822,7 @@ GLFWAPI void glfwSetErrorCallback(GLFWerrorfun cbfun);
 
 /*! @brief Returns the currently connected monitors.
  *  @param[out] count The size of the returned array.
- *  @return An array of monitor handles.
+ *  @return An array of monitor handles, or @c NULL if an error occurred.
  *  @ingroup monitor
  *
  *  @sa glfwGetPrimaryMonitor
@@ -828,7 +830,7 @@ GLFWAPI void glfwSetErrorCallback(GLFWerrorfun cbfun);
 GLFWAPI GLFWmonitor** glfwGetMonitors(int* count);
 
 /*! @brief Returns the primary monitor.
- *  @return The primary monitor.
+ *  @return The primary monitor, or @c NULL if an error occurred.
  *  @ingroup monitor
  *
  *  @sa glfwGetMonitors
@@ -853,7 +855,8 @@ GLFWAPI void glfwGetMonitorPhysicalSize(GLFWmonitor* monitor, int* width, int* h
 
 /*! @brief Returns the name of the specified monitor.
  *  @param[in] monitor The monitor to query.
- *  @return The UTF-8 encoded name of the monitor.
+ *  @return The UTF-8 encoded name of the monitor, or @c NULL if an error
+ *  occurred.
  *  @ingroup monitor
  */
 GLFWAPI const char* glfwGetMonitorName(GLFWmonitor* monitor);
@@ -868,7 +871,7 @@ GLFWAPI void glfwSetMonitorCallback(GLFWmonitorfun cbfun);
 /*! @brief Returns the available video modes for the specified monitor.
  *  @param[in] monitor The monitor to query.
  *  @param[out] count The number of video modes in the returned array.
- *  @return An array of video modes.
+ *  @return An array of video modes, or @c NULL if an error occurred.
  *  @ingroup monitor
  *
  *  @sa glfwGetVideoMode
@@ -877,7 +880,7 @@ GLFWAPI const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count);
 
 /*! @brief Returns the current mode of the specified monitor.
  *  @param[in] monitor The monitor to query.
- *  @return The current mode of the monitor.
+ *  @return The current mode of the monitor, or all zeroes if an error occurred.
  *  @ingroup monitor
  *
  *  @sa glfwGetVideoModes
@@ -957,7 +960,7 @@ GLFWAPI void glfwDefaultWindowHints(void);
  *  capabilities @em exactly for window and context creation to succeed.  Hints
  *  that are not hard constraints are matched as closely as possible, but the
  *  resulting window and context may differ from what these hints requested.  To
- *  find out the actual properties of the created window and context, use the
+ *  find out the actual parameters of the created window and context, use the
  *  @ref glfwGetWindowParam function.
  *
  *  The following hints are hard constraints:
@@ -1078,7 +1081,7 @@ GLFWAPI void glfwWindowHint(int target, int hint);
  *  regular windows the initial cursor mode is @c GLFW_CURSOR_NORMAL and the
  *  screensaver is allowed to start.
  *
- *  @remarks In order to determine the actual properties of an opened window,
+ *  @remarks In order to determine the actual parameters of an opened window,
  *  use @ref glfwGetWindowParam and @ref glfwGetWindowSize.
  *
  *  @remarks <b>Windows:</b> If the executable has an icon resource named @c
@@ -1261,48 +1264,48 @@ GLFWAPI void glfwHideWindow(GLFWwindow* window);
  */
 GLFWAPI GLFWmonitor* glfwGetWindowMonitor(GLFWwindow* window);
 
-/*! @brief Returns a property of the specified window.
+/*! @brief Returns a parameter of the specified window.
  *  @param[in] window The window to query.
- *  @param[in] param The property whose value to return.
- *  @return The value of the property, or zero if an error occurred.
+ *  @param[in] param The parameter whose value to return.
+ *  @return The value of the parameter, or zero if an error occurred.
  *  @ingroup window
  *
- *  @par Window properties
+ *  @par Window parameters
  *
- *  The @c GLFW_FOCUSED property indicates whether the window is focused.
+ *  The @c GLFW_FOCUSED parameter indicates whether the window is focused.
  *
- *  The @c GLFW_ICONIFIED property indicates whether the window is iconified.
+ *  The @c GLFW_ICONIFIED parameter indicates whether the window is iconified.
  *
- *  The @c GLFW_VISIBLE property indicates whether the window is visible.
+ *  The @c GLFW_VISIBLE parameter indicates whether the window is visible.
  *
- *  The @c GLFW_RESIZABLE property indicates whether the window is resizable
+ *  The @c GLFW_RESIZABLE parameter indicates whether the window is resizable
  *  by the user.
  *
- *  The @c GLFW_SHOULD_CLOSE property indicates whether the window has been
+ *  The @c GLFW_SHOULD_CLOSE parameter indicates whether the window has been
  *  requested by the user to close.
  *
- *  @par Context properties
+ *  @par Context parameters
  *
- *  The @c GLFW_CLIENT_API property indicates the client API provided by the
+ *  The @c GLFW_CLIENT_API parameter indicates the client API provided by the
  *  window's context; either @c GLFW_OPENGL_API or @c GLFW_OPENGL_ES_API.
  *
  *  The @c GLFW_CONTEXT_VERSION_MAJOR, @c GLFW_CONTEXT_VERSION_MINOR and @c
- *  GLFW_CONTEXT_REVISION properties indicate the client API version of the
+ *  GLFW_CONTEXT_REVISION parameters indicate the client API version of the
  *  window's context.
  *
- *  The @c GLFW_OPENGL_FORWARD_COMPAT property is @c GL_TRUE if the window's
+ *  The @c GLFW_OPENGL_FORWARD_COMPAT parameter is @c GL_TRUE if the window's
  *  context is an OpenGL forward-compatible one, or @c GL_FALSE otherwise.
  *
- *  The @c GLFW_OPENGL_DEBUG_CONTEXT property is @c GL_TRUE if the window's
+ *  The @c GLFW_OPENGL_DEBUG_CONTEXT parameter is @c GL_TRUE if the window's
  *  context is an OpenGL debug context, or @c GL_FALSE otherwise.
  *
- *  The @c GLFW_OPENGL_PROFILE property indicates the OpenGL profile used by the
+ *  The @c GLFW_OPENGL_PROFILE parameter indicates the OpenGL profile used by the
  *  context.  This is @c GLFW_OPENGL_CORE_PROFILE or @c
  *  GLFW_OPENGL_COMPAT_PROFILE if the context uses a known profile, or @c
  *  GLFW_OPENGL_NO_PROFILE if the OpenGL profile is unknown or the context is
  *  for another client API.
  *
- *  The @c GLFW_CONTEXT_ROBUSTNESS property indicates the robustness strategy
+ *  The @c GLFW_CONTEXT_ROBUSTNESS parameter indicates the robustness strategy
  *  used by the context.  This is @c GLFW_LOSE_CONTEXT_ON_RESET or @c
  *  GLFW_NO_RESET_NOTIFICATION if the window's context supports robustness, or
  *  @c GLFW_NO_ROBUSTNESS otherwise.
@@ -1355,7 +1358,8 @@ GLFWAPI void glfwSetWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun cbf
  *  cause this callback to be called.
  *
  *  The return value of the close callback becomes the new value of the @c
- *  GLFW_SHOULD_CLOSE window parameter.
+ *  GLFW_SHOULD_CLOSE window parameter, which you can query with @ref
+ *  glfwGetWindowParam.
  *
  *  @remarks <b>Mac OS X:</b> Selecting Quit from the application menu will
  *  trigger the close callback for all windows.
@@ -1557,9 +1561,9 @@ GLFWAPI void glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcursorenterfun c
  */
 GLFWAPI void glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun);
 
-/*! @brief Returns a property of the specified joystick.
+/*! @brief Returns a parameter of the specified joystick.
  *  @param[in] joy The joystick to query.
- *  @param[in] param The property whose value to return.
+ *  @param[in] param The parameter whose value to return.
  *  @return The specified joystick's current value, or zero if the joystick is
  *  not present.
  *  @ingroup input
@@ -1570,7 +1574,8 @@ GLFWAPI int glfwGetJoystickParam(int joy, int param);
  *  @param[in] joy The joystick to query.
  *  @param[out] axes The array to hold the values.
  *  @param[in] numaxes The size of the provided array.
- *  @return The number of values written to @p axes.
+ *  @return The number of values written to @p axes, or zero if an error
+ *  occurred.
  *  @ingroup input
  */
 GLFWAPI int glfwGetJoystickAxes(int joy, float* axes, int numaxes);
@@ -1579,7 +1584,8 @@ GLFWAPI int glfwGetJoystickAxes(int joy, float* axes, int numaxes);
  *  @param[in] joy The joystick to query.
  *  @param[out] buttons The array to hold the values.
  *  @param[in] numbuttons The size of the provided array.
- *  @return The number of values written to @p buttons.
+ *  @return The number of values written to @p buttons, or zero if an error
+ *  occurred.
  *  @ingroup input
  */
 GLFWAPI int glfwGetJoystickButtons(int joy, unsigned char* buttons, int numbuttons);
@@ -1609,7 +1615,7 @@ GLFWAPI void glfwSetClipboardString(GLFWwindow* window, const char* string);
 /*! @brief Retrieves the contents of the clipboard as a string.
  *  @param[in] window The window that will request the clipboard contents.
  *  @return The contents of the clipboard as a UTF-8 encoded string, or @c NULL
- *  if that format was unavailable.
+ *  if an error occurred.
  *  @ingroup clipboard
  *
  *  @note This function may only be called from the main thread.
@@ -1622,7 +1628,7 @@ GLFWAPI void glfwSetClipboardString(GLFWwindow* window, const char* string);
 GLFWAPI const char* glfwGetClipboardString(GLFWwindow* window);
 
 /*! @brief Retrieves the current value of the GLFW timer.
- *  @return The current value, in seconds.
+ *  @return The current value, in seconds, or zero if an error occurred.
  *  @ingroup time
  *
  *  @remarks This function may be called from secondary threads.
