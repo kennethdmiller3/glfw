@@ -50,7 +50,17 @@ static void updateClipRect(_GLFWwindow* window)
 //
 static void hideCursor(_GLFWwindow* window)
 {
-    UNREFERENCED_PARAMETER(window);
+    POINT pos;
+
+    ReleaseCapture();
+    ClipCursor(NULL);
+    ShowCursor(TRUE);
+
+    if (GetCursorPos(&pos))
+    {
+        if (WindowFromPoint(pos) == window->win32.handle)
+            SetCursor(NULL);
+    }
 }
 
 // Capture mouse cursor
@@ -66,11 +76,17 @@ static void captureCursor(_GLFWwindow* window)
 //
 static void showCursor(_GLFWwindow* window)
 {
-    UNREFERENCED_PARAMETER(window);
+    POINT pos;
 
     ReleaseCapture();
     ClipCursor(NULL);
     ShowCursor(TRUE);
+
+    if (GetCursorPos(&pos))
+    {
+        if (WindowFromPoint(pos) == window->win32.handle)
+            SetCursor(LoadCursor(NULL, IDC_ARROW));
+    }
 }
 
 // Translates a Windows key to the corresponding GLFW key
@@ -597,6 +613,19 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             break;
         }
 
+        case WM_SETCURSOR:
+        {
+            if (window->cursorMode == GLFW_CURSOR_HIDDEN &&
+                window->win32.handle == GetForegroundWindow() &&
+                LOWORD(lParam) == HTCLIENT)
+            {
+                SetCursor(NULL);
+                return TRUE;
+            }
+
+            break;
+        }
+
         case WM_DEVICECHANGE:
         {
             if (DBT_DEVNODES_CHANGED == wParam)
@@ -604,6 +633,20 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 _glfwInputMonitorChange();
                 return TRUE;
             }
+            break;
+        }
+
+        case WM_DWMCOMPOSITIONCHANGED:
+        {
+            if (_glfwIsCompositionEnabled())
+            {
+                _GLFWwindow* previous = _glfwPlatformGetCurrentContext();
+                _glfwPlatformMakeContextCurrent(window);
+                _glfwPlatformSwapInterval(0);
+                _glfwPlatformMakeContextCurrent(previous);
+            }
+
+            // TODO: Restore vsync if compositing was disabled
             break;
         }
     }

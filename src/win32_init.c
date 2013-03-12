@@ -79,6 +79,20 @@ static GLboolean initLibraries(void)
     }
 #endif // _GLFW_NO_DLOAD_WINMM
 
+    _glfw.win32.user32.instance = LoadLibrary(L"user32.dll");
+    if (_glfw.win32.user32.instance)
+    {
+        _glfw.win32.user32.SetProcessDPIAware = (SETPROCESSDPIAWARE_T)
+            GetProcAddress(_glfw.win32.user32.instance, "SetProcessDPIAware");
+    }
+
+    _glfw.win32.dwmapi.instance = LoadLibrary(L"dwmapi.dll");
+    if (_glfw.win32.dwmapi.instance)
+    {
+        _glfw.win32.dwmapi.DwmIsCompositionEnabled = (DWMISCOMPOSITIONENABLED_T)
+            GetProcAddress(_glfw.win32.dwmapi.instance, "DwmIsCompositionEnabled");
+    }
+
     return GL_TRUE;
 }
 
@@ -99,6 +113,21 @@ static void freeLibraries(void)
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW internal API                      //////
 //////////////////////////////////////////////////////////////////////////
+
+// Returns whether desktop compositing is enabled
+//
+BOOL _glfwIsCompositionEnabled(void)
+{
+    BOOL enabled;
+
+    if (!_glfw_DwmIsCompositionEnabled)
+        return FALSE;
+
+    if (_glfw_DwmIsCompositionEnabled(&enabled) != S_OK)
+        return FALSE;
+
+    return enabled;
+}
 
 // Returns a wide string version of the specified UTF-8 string
 //
@@ -161,6 +190,9 @@ int _glfwPlatformInit(void)
 
     if (!initLibraries())
         return GL_FALSE;
+
+    if (_glfw_SetProcessDPIAware)
+        _glfw_SetProcessDPIAware();
 
 #ifdef __BORLANDC__
     // With the Borland C++ compiler, we want to disable FPU exceptions
