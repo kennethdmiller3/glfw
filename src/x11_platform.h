@@ -44,6 +44,9 @@
 // The XRandR extension provides mode setting and gamma control
 #include <X11/extensions/Xrandr.h>
 
+// The XInput2 extension provides improved input events
+#include <X11/extensions/XInput2.h>
+
 // The Xkb extension provides improved keyboard support
 #include <X11/XKBlib.h>
 
@@ -74,11 +77,6 @@
 // GLFW platform specific types
 //========================================================================
 
-//------------------------------------------------------------------------
-// Pointer length integer
-//------------------------------------------------------------------------
-typedef intptr_t GLFWintptr;
-
 
 //------------------------------------------------------------------------
 // Platform-specific window structure
@@ -94,7 +92,7 @@ typedef struct _GLFWwindowX11
     GLboolean       cursorGrabbed;    // True if cursor is currently grabbed
     GLboolean       cursorHidden;     // True if cursor is currently hidden
     GLboolean       cursorCentered;   // True if cursor was moved since last poll
-    int             cursorPosX, cursorPosY;
+    double          cursorPosX, cursorPosY;
 
 } _GLFWwindowX11;
 
@@ -120,6 +118,7 @@ typedef struct _GLFWlibraryX11
     Atom            NET_WM_STATE;
     Atom            NET_WM_STATE_FULLSCREEN;
     Atom            NET_ACTIVE_WINDOW;
+    Atom            MOTIF_WM_HINTS;
 
     // Selection atoms
     Atom            TARGETS;
@@ -152,6 +151,15 @@ typedef struct _GLFWlibraryX11
         int         versionMajor;
         int         versionMinor;
     } xkb;
+
+    struct {
+        GLboolean   available;
+        int         majorOpcode;
+        int         eventBase;
+        int         errorBase;
+        int         versionMajor;
+        int         versionMinor;
+    } xi2;
 
     // LUT for mapping X11 key codes to GLFW key codes
     int             keyCodeLUT[256];

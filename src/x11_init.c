@@ -442,6 +442,9 @@ static GLboolean initDisplay(void)
     _glfw.x11.WM_DELETE_WINDOW = XInternAtom(_glfw.x11.display,
                                              "WM_DELETE_WINDOW",
                                              False);
+    _glfw.x11.MOTIF_WM_HINTS = XInternAtom(_glfw.x11.display,
+                                           "_MOTIF_WM_HINTS",
+                                           False);
 
     // Check for XF86VidMode extension
     _glfw.x11.vidmode.available =
@@ -471,6 +474,23 @@ static GLboolean initDisplay(void)
             _glfw.x11.randr.versionMinor < 3)
         {
             _glfw.x11.randr.available = GL_FALSE;
+        }
+    }
+
+    if (XQueryExtension(_glfw.x11.display,
+                        "XInputExtension",
+                        &_glfw.x11.xi2.majorOpcode,
+                        &_glfw.x11.xi2.eventBase,
+                        &_glfw.x11.xi2.errorBase))
+    {
+        _glfw.x11.xi2.versionMajor = 2;
+        _glfw.x11.xi2.versionMinor = 0;
+
+        if (XIQueryVersion(_glfw.x11.display,
+                           &_glfw.x11.xi2.versionMajor,
+                           &_glfw.x11.xi2.versionMinor) != BadRequest)
+        {
+            _glfw.x11.xi2.available = GL_TRUE;
         }
     }
 

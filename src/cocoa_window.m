@@ -365,11 +365,7 @@ static int convertMacKeyCode(unsigned int macKeyCode)
             [window->ns.object contentRectForFrameRect:[window->ns.object frame]];
         const NSPoint p = [event locationInWindow];
 
-        // Cocoa coordinate system has origin at lower left
-        const int x = lround(floor(p.x));
-        const int y = contentRect.size.height - lround(ceil(p.y));
-
-        _glfwInputCursorMotion(window, x, y);
+        _glfwInputCursorMotion(window, p.x, contentRect.size.height - p.y);
     }
 }
 
@@ -454,7 +450,7 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 {
     int mode, key;
     unsigned int newModifierFlags =
-        [event modifierFlags] | NSDeviceIndependentModifierFlagsMask;
+        [event modifierFlags] & NSDeviceIndependentModifierFlagsMask;
 
     if (newModifierFlags > window->ns.modifierFlags)
         mode = GLFW_PRESS;
@@ -480,6 +476,24 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
     if (fabs(deltaX) > 0.0 || fabs(deltaY) > 0.0)
         _glfwInputScroll(window, deltaX, deltaY);
+}
+
+@end
+
+
+//------------------------------------------------------------------------
+// GLFW window class
+//------------------------------------------------------------------------
+
+@interface GLFWWindow : NSWindow {}
+@end
+
+@implementation GLFWWindow
+
+- (BOOL)canBecomeKeyWindow
+{
+    // Required for NSBorderlessWindowMask windows
+    return YES;
 }
 
 @end
@@ -647,7 +661,7 @@ static GLboolean createWindow(_GLFWwindow* window,
 {
     unsigned int styleMask = 0;
 
-    if (wndconfig->monitor)
+    if (wndconfig->monitor || !wndconfig->decorated)
         styleMask = NSBorderlessWindowMask;
     else
     {
@@ -658,7 +672,7 @@ static GLboolean createWindow(_GLFWwindow* window,
             styleMask |= NSResizableWindowMask;
     }
 
-    window->ns.object = [[NSWindow alloc]
+    window->ns.object = [[GLFWWindow alloc]
         initWithContentRect:NSMakeRect(0, 0, wndconfig->width, wndconfig->height)
                   styleMask:styleMask
                     backing:NSBackingStoreBuffered
@@ -877,7 +891,7 @@ void _glfwPlatformWaitEvents(void)
     _glfwPlatformPollEvents();
 }
 
-void _glfwPlatformSetCursorPos(_GLFWwindow* window, int x, int y)
+void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
 {
     if (window->monitor)
     {

@@ -60,7 +60,7 @@ static void hideCursor(_GLFWwindow* window)
     {
         if (WindowFromPoint(pos) == window->win32.handle)
             SetCursor(NULL);
-    }
+}
 }
 
 // Capture mouse cursor
@@ -731,12 +731,20 @@ static int createWindow(_GLFWwindow* window,
     }
     else
     {
-        window->win32.dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-
-        if (wndconfig->resizable)
+        if (wndconfig->decorated)
         {
-            window->win32.dwStyle |= WS_MAXIMIZEBOX | WS_SIZEBOX;
-            window->win32.dwExStyle |= WS_EX_WINDOWEDGE;
+            window->win32.dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+            if (wndconfig->resizable)
+            {
+                window->win32.dwStyle |= WS_MAXIMIZEBOX | WS_SIZEBOX;
+                window->win32.dwExStyle |= WS_EX_WINDOWEDGE;
+            }
+        }
+        else
+        {
+            window->win32.dwStyle = WS_POPUP;
+            window->win32.dwExStyle = 0;
         }
 
         xpos = CW_USEDEFAULT;
@@ -938,7 +946,7 @@ void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height)
         SetWindowPos(window->win32.handle, HWND_TOP,
                      0, 0, mode.width, mode.height,
                      SWP_NOMOVE);
-    }
+        }
     else
     {
         int fullWidth, fullHeight;
@@ -1049,9 +1057,9 @@ void _glfwPlatformWaitEvents(void)
     _glfwPlatformPollEvents();
 }
 
-void _glfwPlatformSetCursorPos(_GLFWwindow* window, int xpos, int ypos)
+void _glfwPlatformSetCursorPos(_GLFWwindow* window, double xpos, double ypos)
 {
-    POINT pos = { xpos, ypos };
+    POINT pos = { (int) xpos, (int) ypos };
     ClientToScreen(window->win32.handle, &pos);
     SetCursorPos(pos.x, pos.y);
 }

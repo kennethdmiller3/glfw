@@ -125,7 +125,7 @@ typedef HRESULT (WINAPI * DWMISCOMPOSITIONENABLED_T)(BOOL*);
  #include "wgl_platform.h"
 #elif defined(_GLFW_EGL)
  #define _GLFW_EGL_NATIVE_WINDOW  window->win32.handle
- #define _GLFW_EGL_NATIVE_DISPLAY NULL
+ #define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
  #include "egl_platform.h"
 #else
  #error "No supported context creation API selected"
@@ -139,11 +139,6 @@ typedef HRESULT (WINAPI * DWMISCOMPOSITIONENABLED_T)(BOOL*);
 //========================================================================
 // GLFW platform specific types
 //========================================================================
-
-//------------------------------------------------------------------------
-// Pointer length integer
-//------------------------------------------------------------------------
-typedef INT_PTR GLFWintptr;
 
 
 //------------------------------------------------------------------------
