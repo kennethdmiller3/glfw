@@ -54,7 +54,7 @@
  // This path may need to be changed if you build GLFW using your own setup
  // GLFW comes with its own copy of glext.h since it uses fairly new extensions
  // and not all development environments come with an up-to-date version
- #include "../support/GL/glext.h"
+ #include "../deps/GL/glext.h"
 #endif
 
 typedef struct _GLFWhints       _GLFWhints;
@@ -290,6 +290,8 @@ struct _GLFWmonitor
 struct _GLFWlibrary
 {
     _GLFWhints      hints;
+
+    double          cursorPosX, cursorPosY;
 
     _GLFWwindow*    windowListHead;
     _GLFWwindow*    focusedWindow;
@@ -704,6 +706,6 @@ void _glfwDestroyMonitor(_GLFWmonitor* monitor);
 
 /*! @ingroup utility
   */
-void _glfwDestroyMonitors(void);
+void _glfwDestroyMonitors(_GLFWmonitor** monitors, int count);
 
 #endif // _internal_h_

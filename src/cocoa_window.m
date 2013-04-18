@@ -759,7 +759,7 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
             return GL_FALSE;
 
         _glfwPlatformShowWindow(window);
-        [[window->ns.object contentView] enterFullScreenMode:[NSScreen mainScreen]
+        [[window->ns.object contentView] enterFullScreenMode:wndconfig->monitor->ns.screen
                                                  withOptions:nil];
     }
 
@@ -794,8 +794,6 @@ void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 
     [window->ns.object close];
     window->ns.object = nil;
-
-    // TODO: Probably more cleanup
 }
 
 void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char *title)

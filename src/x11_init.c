@@ -30,6 +30,8 @@
 
 #include "internal.h"
 
+#include <X11/Xresource.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -432,10 +434,9 @@ static GLboolean initDisplay(void)
         return GL_FALSE;
     }
 
-    // As the API currently doesn't understand multiple display devices, we hard-code
-    // this choice and hope for the best
     _glfw.x11.screen = DefaultScreen(_glfw.x11.display);
     _glfw.x11.root = RootWindow(_glfw.x11.display, _glfw.x11.screen);
+    _glfw.x11.context = XUniqueContext();
 
     // Find or create window manager atoms
     _glfw.x11.WM_STATE = XInternAtom(_glfw.x11.display, "WM_STATE", False);
@@ -479,18 +480,18 @@ static GLboolean initDisplay(void)
 
     if (XQueryExtension(_glfw.x11.display,
                         "XInputExtension",
-                        &_glfw.x11.xi2.majorOpcode,
-                        &_glfw.x11.xi2.eventBase,
-                        &_glfw.x11.xi2.errorBase))
+                        &_glfw.x11.xi.majorOpcode,
+                        &_glfw.x11.xi.eventBase,
+                        &_glfw.x11.xi.errorBase))
     {
-        _glfw.x11.xi2.versionMajor = 2;
-        _glfw.x11.xi2.versionMinor = 0;
+        _glfw.x11.xi.versionMajor = 2;
+        _glfw.x11.xi.versionMinor = 0;
 
         if (XIQueryVersion(_glfw.x11.display,
-                           &_glfw.x11.xi2.versionMajor,
-                           &_glfw.x11.xi2.versionMinor) != BadRequest)
+                           &_glfw.x11.xi.versionMajor,
+                           &_glfw.x11.xi.versionMinor) != BadRequest)
         {
-            _glfw.x11.xi2.available = GL_TRUE;
+            _glfw.x11.xi.available = GL_TRUE;
         }
     }
 
