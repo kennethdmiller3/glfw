@@ -50,13 +50,13 @@
 
 // Change the current video mode
 //
-int _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* mode)
+GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* desired)
 {
     GLFWvidmode current;
     const GLFWvidmode* best;
     DEVMODE dm;
 
-    best = _glfwChooseVideoMode(monitor, mode);
+    best = _glfwChooseVideoMode(monitor, desired);
 
     _glfwPlatformGetVideoMode(monitor, &current);
     if (_glfwCompareVideoModes(&current, best) == 0)
@@ -172,6 +172,11 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
 
     *count = found;
     return monitors;
+}
+
+GLboolean _glfwPlatformIsSameMonitor(_GLFWmonitor* first, _GLFWmonitor* second)
+{
+    return wcscmp(first->win32.name, second->win32.name);
 }
 
 void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos)
