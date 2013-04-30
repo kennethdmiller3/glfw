@@ -66,12 +66,6 @@
 #define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryX11 x11
 #define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorX11 x11
 
-// Clipboard format atom indices (in order of preference)
-#define _GLFW_CLIPBOARD_FORMAT_UTF8     0
-#define _GLFW_CLIPBOARD_FORMAT_COMPOUND 1
-#define _GLFW_CLIPBOARD_FORMAT_STRING   2
-#define _GLFW_CLIPBOARD_FORMAT_COUNT    3
-
 
 //========================================================================
 // GLFW platform specific types
@@ -123,9 +117,14 @@ typedef struct _GLFWlibraryX11
 
     // Selection atoms
     Atom            TARGETS;
+    Atom            MULTIPLE;
     Atom            CLIPBOARD;
+    Atom            CLIPBOARD_MANAGER;
+    Atom            SAVE_TARGETS;
     Atom            UTF8_STRING;
     Atom            COMPOUND_STRING;
+    Atom            ATOM_PAIR;
+    Atom            GLFW_SELECTION;
 
     // True if window manager supports EWMH
     GLboolean       hasEWMH;
@@ -180,9 +179,7 @@ typedef struct _GLFWlibraryX11
     } timer;
 
     struct {
-        Atom        formats[_GLFW_CLIPBOARD_FORMAT_COUNT];
         char*       string;
-        Atom        property;
     } selection;
 
     struct {
@@ -240,7 +237,9 @@ void _glfwTerminateJoysticks(void);
 long _glfwKeySym2Unicode(KeySym keysym);
 
 // Clipboard handling
-Atom _glfwWriteSelection(XSelectionRequestEvent* request);
+void _glfwHandleSelectionClear(XEvent* event);
+void _glfwHandleSelectionRequest(XEvent* event);
+void _glfwPushSelectionToManager(_GLFWwindow* window);
 
 // Window support
 _GLFWwindow* _glfwFindWindowByHandle(Window handle);
