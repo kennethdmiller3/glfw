@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <pthread.h>
 
 
 // This is the only glXGetProcAddress variant not declared by glxext.h
@@ -44,29 +45,11 @@ void (*glXGetProcAddressEXT(const GLubyte* procName))();
 #endif
 
 
-// Thread local storage attribute macro
-//
-#if defined(__GNUC__)
- #define _GLFW_TLS __thread
-#else
- #define _GLFW_TLS
-#endif
-
-
-// The X error code as provided to the X error handler
-//
-static unsigned long _glfwErrorCode = Success;
-
-// The per-thread current context/window pointer
-//
-static _GLFW_TLS _GLFWwindow* _glfwCurrentWindow = NULL;
-
-
 // Error handler used when creating a context
 //
 static int errorHandler(Display *display, XErrorEvent* event)
 {
-    _glfwErrorCode = event->error_code;
+    _glfw.glx.errorCode = event->error_code;
     return 0;
 }
 
@@ -127,6 +110,13 @@ int _glfwInitContextAPI(void)
         return GL_FALSE;
     }
 #endif
+
+    if (pthread_key_create(&_glfw.glx.current, NULL) != 0)
+    {
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "GLX: Failed to create context TLS");
+        return GL_FALSE;
+    }
 
     // Check if GLX is supported on this display
     if (!glXQueryExtension(_glfw.x11.display,
@@ -232,6 +222,8 @@ void _glfwTerminateContextAPI(void)
         _glfw.glx.libGL = NULL;
     }
 #endif
+
+    pthread_key_delete(_glfw.glx.current);
 }
 
 #define setGLXattrib(attribName, attribValue) \
@@ -393,7 +385,7 @@ int _glfwCreateContext(_GLFWwindow* window,
         }
     }
 
-    _glfwErrorCode = Success;
+    _glfw.glx.errorCode = Success;
     XSetErrorHandler(errorHandler);
 
     if (_glfw.glx.ARB_create_context)
@@ -465,7 +457,7 @@ int _glfwCreateContext(_GLFWwindow* window,
             // HACK: This is a fallback for the broken Mesa implementation of
             // GLX_ARB_create_context_profile, which fails default 1.0 context
             // creation with a GLXBadProfileARB error in violation of the spec
-            if (_glfwErrorCode == _glfw.glx.errorBase + GLXBadProfileARB &&
+            if (_glfw.glx.errorCode == _glfw.glx.errorBase + GLXBadProfileARB &&
                 wndconfig->clientAPI == GLFW_OPENGL_API &&
                 wndconfig->glProfile == GLFW_OPENGL_NO_PROFILE &&
                 wndconfig->glForward == GL_FALSE)
@@ -485,7 +477,7 @@ int _glfwCreateContext(_GLFWwindow* window,
     {
         char buffer[8192];
         XGetErrorText(_glfw.x11.display,
-                      _glfwErrorCode,
+                      _glfw.glx.errorCode,
                       buffer, sizeof(buffer));
 
         _glfwInputError(GLFW_PLATFORM_ERROR,
@@ -533,12 +525,12 @@ void _glfwPlatformMakeContextCurrent(_GLFWwindow* window)
     else
         glXMakeCurrent(_glfw.x11.display, None, NULL);
 
-    _glfwCurrentWindow = window;
+    pthread_setspecific(_glfw.glx.current, window);
 }
 
 _GLFWwindow* _glfwPlatformGetCurrentContext(void)
 {
-    return _glfwCurrentWindow;
+    return (_GLFWwindow*) pthread_getspecific(_glfw.glx.current);
 }
 
 void _glfwPlatformSwapBuffers(_GLFWwindow* window)
@@ -548,7 +540,7 @@ void _glfwPlatformSwapBuffers(_GLFWwindow* window)
 
 void _glfwPlatformSwapInterval(int interval)
 {
-    _GLFWwindow* window = _glfwCurrentWindow;
+    _GLFWwindow* window = _glfwPlatformGetCurrentContext();
 
     if (_glfw.glx.EXT_swap_control)
     {
