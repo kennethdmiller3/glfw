@@ -8,11 +8,6 @@ else()
     link_libraries(${glfw_LIBRARIES})
 endif()
 
-list(APPEND thread_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-if (UNIX AND NOT APPLE)
-    list(APPEND thread_LIBRARIES ${RT_LIBRARY})
-endif()
-
 include_directories(${GLFW_SOURCE_DIR}/include
                     ${GLFW_SOURCE_DIR}/deps)
 
@@ -61,8 +56,7 @@ set_target_properties(title PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Title")
 add_executable(windows WIN32 MACOSX_BUNDLE windows.c)
 set_target_properties(windows PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Windows")
 
-target_link_libraries(threads ${thread_LIBRARIES})
-
+target_link_libraries(threads ${CMAKE_THREAD_LIBS_INIT} ${RT_LIBRARY})
 
 set(WINDOWS_BINARIES accuracy sharing tearing threads title windows)
 set(CONSOLE_BINARIES clipboard defaults events fsaa fsfocus gamma glfwinfo
