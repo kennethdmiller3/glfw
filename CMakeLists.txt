@@ -125,13 +125,19 @@ if (_GLFW_WIN32)
         option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
 
         if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
-            foreach (flag CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+            foreach (flag CMAKE_C_FLAGS
+                          CMAKE_C_FLAGS_DEBUG
+                          CMAKE_C_FLAGS_RELEASE
+                          CMAKE_C_FLAGS_MINSIZEREL
+                          CMAKE_C_FLAGS_RELWITHDEBINFO)
+
                 if (${flag} MATCHES "/MD")
                     string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
                 endif()
                 if (${flag} MATCHES "/MDd")
                     string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
                 endif()
+
             endforeach()
         endif()
     endif()
@@ -172,14 +178,18 @@ if (_GLFW_X11)
         message(FATAL_ERROR "The RandR library and headers were not found")
     endif()
 
-    if (X11_Xinput_FOUND)
-        list(APPEND glfw_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
-        list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
-    endif()
-
     list(APPEND glfw_INCLUDE_DIRS ${X11_Xrandr_INCLUDE_PATH})
     list(APPEND glfw_LIBRARIES ${X11_Xrandr_LIB})
     set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xrandr")
+
+    # Check for XInput (high-resolution cursor motion)
+    if (NOT X11_Xinput_FOUND)
+        message(FATAL_ERROR "The XInput library and headers were not found")
+    endif()
+
+    list(APPEND glfw_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
+    list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
+    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xi")
 
     # Check for Xf86VidMode (fallback gamma control)
     if (NOT X11_xf86vmode_FOUND)
