@@ -60,6 +60,15 @@ static void leaveFullscreenMode(_GLFWwindow* window)
     [window->ns.view exitFullScreenModeWithOptions:nil];
 }
 
+// Transforms the specified y-coordinate between the CG display and NS screen
+// coordinate systems
+//
+static float transformY(float y)
+{
+    const float height = CGDisplayBounds(CGMainDisplayID()).size.height;
+    return height - y;
+}
+
 
 //------------------------------------------------------------------------
 // Delegate for window related notifications
@@ -107,7 +116,7 @@ static void centerCursor(_GLFWwindow *window)
     _glfwInputWindowSize(window, width, height);
     _glfwInputWindowDamage(window);
 
-    if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+    if (window->cursorMode == GLFW_CURSOR_DISABLED)
         centerCursor(window);
 }
 
@@ -119,7 +128,7 @@ static void centerCursor(_GLFWwindow *window)
     _glfwPlatformGetWindowPos(window, &x, &y);
     _glfwInputWindowPos(window, x, y);
 
-    if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+    if (window->cursorMode == GLFW_CURSOR_DISABLED)
         centerCursor(window);
 }
 
@@ -140,7 +149,7 @@ static void centerCursor(_GLFWwindow *window)
 {
     _glfwInputWindowFocus(window, GL_TRUE);
 
-    if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+    if (window->cursorMode == GLFW_CURSOR_DISABLED)
         centerCursor(window);
 }
 
@@ -191,6 +200,22 @@ static void centerCursor(_GLFWwindow *window)
 }
 
 @end
+
+// Converts Mac OS X key modifiers into GLFW ones
+//
+static int convertKeyMods(NSUInteger flags)
+{
+    int mods = 0;
+
+    if (flags & NSShiftKeyMask)
+        mods |= GLFW_MOD_SHIFT;
+    if (flags & NSControlKeyMask)
+        mods |= GLFW_MOD_CTRL;
+    if (flags & NSAlternateKeyMask)
+        mods |= GLFW_MOD_ALT;
+
+    return mods;
+}
 
 // Converts a Mac OS X keycode to a GLFW keycode
 //
@@ -404,7 +429,10 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)mouseDown:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS);
+    _glfwInputMouseClick(window,
+                         GLFW_MOUSE_BUTTON_LEFT,
+                         GLFW_PRESS,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)mouseDragged:(NSEvent *)event
@@ -414,12 +442,15 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)mouseUp:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE);
+    _glfwInputMouseClick(window,
+                         GLFW_MOUSE_BUTTON_LEFT,
+                         GLFW_RELEASE,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)mouseMoved:(NSEvent *)event
 {
-    if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+    if (window->cursorMode == GLFW_CURSOR_DISABLED)
         _glfwInputCursorMotion(window, [event deltaX], [event deltaY]);
     else
     {
@@ -433,7 +464,10 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)rightMouseDown:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS);
+    _glfwInputMouseClick(window,
+                         GLFW_MOUSE_BUTTON_RIGHT,
+                         GLFW_PRESS,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)rightMouseDragged:(NSEvent *)event
@@ -443,12 +477,18 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)rightMouseUp:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_RELEASE);
+    _glfwInputMouseClick(window,
+                         GLFW_MOUSE_BUTTON_RIGHT,
+                         GLFW_RELEASE,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)otherMouseDown:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, [event buttonNumber], GLFW_PRESS);
+    _glfwInputMouseClick(window,
+                         [event buttonNumber],
+                         GLFW_PRESS,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)otherMouseDragged:(NSEvent *)event
@@ -458,7 +498,10 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)otherMouseUp:(NSEvent *)event
 {
-    _glfwInputMouseClick(window, [event buttonNumber], GLFW_RELEASE);
+    _glfwInputMouseClick(window,
+                         [event buttonNumber],
+                         GLFW_RELEASE,
+                         convertKeyMods([event modifierFlags]));
 }
 
 - (void)mouseExited:(NSEvent *)event
@@ -494,7 +537,12 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
 - (void)keyDown:(NSEvent *)event
 {
-    _glfwInputKey(window, convertMacKeyCode([event keyCode]), GLFW_PRESS);
+    const NSUInteger mods = [event modifierFlags];
+
+    _glfwInputKey(window,
+                  convertMacKeyCode([event keyCode]),
+                  GLFW_PRESS,
+                  convertKeyMods(mods));
 
     if ([event modifierFlags] & NSCommandKeyMask)
         return;
@@ -521,12 +569,15 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 
     key = convertMacKeyCode([event keyCode]);
     if (key != -1)
-      _glfwInputKey(window, key, action);
+        _glfwInputKey(window, key, action, convertKeyMods([event modifierFlags]));
 }
 
 - (void)keyUp:(NSEvent *)event
 {
-    _glfwInputKey(window, convertMacKeyCode([event keyCode]), GLFW_RELEASE);
+    _glfwInputKey(window,
+                  convertMacKeyCode([event keyCode]),
+                  GLFW_RELEASE,
+                  convertKeyMods([event modifierFlags]));
 }
 
 - (void)scrollWheel:(NSEvent *)event
@@ -854,7 +905,7 @@ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
     if (xpos)
         *xpos = contentRect.origin.x;
     if (ypos)
-        *ypos = contentRect.origin.y;
+        *ypos = transformY(contentRect.origin.y + contentRect.size.height);
 }
 
 void _glfwPlatformSetWindowPos(_GLFWwindow* window, int x, int y)
@@ -941,21 +992,18 @@ void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
 {
     if (window->monitor)
     {
-        CGPoint globalPoint = CGPointMake(x, y);
-        CGDisplayMoveCursorToPoint(CGMainDisplayID(), globalPoint);
+        CGDisplayMoveCursorToPoint(window->monitor->ns.displayID,
+                                   CGPointMake(x, y));
     }
     else
     {
         const NSRect contentRect =
             [window->ns.object contentRectForFrameRect:[window->ns.object frame]];
-        NSPoint localPoint = NSMakePoint(x, contentRect.size.height - y - 1);
-        NSPoint globalPoint = [window->ns.object convertBaseToScreen:localPoint];
-        CGPoint mainScreenOrigin = CGDisplayBounds(CGMainDisplayID()).origin;
-        double mainScreenHeight = CGDisplayBounds(CGMainDisplayID()).size.height;
-        CGPoint targetPoint = CGPointMake(globalPoint.x - mainScreenOrigin.x,
-                                          mainScreenHeight - globalPoint.y -
-                                            mainScreenOrigin.y);
-        CGDisplayMoveCursorToPoint(CGMainDisplayID(), targetPoint);
+        const NSPoint localPoint = NSMakePoint(x, contentRect.size.height - y - 1);
+        const NSPoint globalPoint = [window->ns.object convertBaseToScreen:localPoint];
+
+        CGWarpMouseCursorPosition(CGPointMake(globalPoint.x,
+                                              transformY(globalPoint.y)));
     }
 }
 
@@ -972,7 +1020,7 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
         [window->ns.object invalidateCursorRectsForView:window->ns.view];
     }
 
-    if (mode == GLFW_CURSOR_CAPTURED)
+    if (mode == GLFW_CURSOR_DISABLED)
     {
         CGAssociateMouseAndMouseCursorPosition(false);
 

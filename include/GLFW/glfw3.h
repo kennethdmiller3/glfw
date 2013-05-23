@@ -407,6 +407,21 @@ extern "C" {
 
 /*! @} */
 
+/*! @name keys Modifier key flags
+ *  @{ */
+
+/*! @ingroup input
+ */
+#define GLFW_MOD_SHIFT           0x0001
+/*! @ingroup input
+ */
+#define GLFW_MOD_CTRL            0x0002
+/*! @ingroup input
+ */
+#define GLFW_MOD_ALT             0x0004
+
+/*! @} */
+
 /*! @defgroup buttons Mouse buttons
  *  @ingroup input
  *  @{ */
@@ -522,19 +537,13 @@ extern "C" {
 #define GLFW_OPENGL_CORE_PROFILE    0x00000001
 #define GLFW_OPENGL_COMPAT_PROFILE  0x00000002
 
-#define GLFW_CURSOR_MODE            0x00030001
+#define GLFW_CURSOR                 0x00030001
 #define GLFW_STICKY_KEYS            0x00030002
 #define GLFW_STICKY_MOUSE_BUTTONS   0x00030003
 
 #define GLFW_CURSOR_NORMAL          0x00040001
 #define GLFW_CURSOR_HIDDEN          0x00040002
-#define GLFW_CURSOR_CAPTURED        0x00040003
-
-#define GLFW_PRESENT                0x00050001
-#define GLFW_AXES                   0x00050002
-#define GLFW_BUTTONS                0x00050003
-
-#define GLFW_GAMMA_RAMP_SIZE        256
+#define GLFW_CURSOR_DISABLED        0x00040003
 
 #define GLFW_CONNECTED              0x00061000
 #define GLFW_DISCONNECTED           0x00061001
@@ -673,12 +682,13 @@ typedef void (* GLFWwindowiconifyfun)(GLFWwindow*,int);
  *  @param[in] button The [mouse button](@ref buttons) that was pressed or
  *  released.
  *  @param[in] action One of `GLFW_PRESS` or `GLFW_RELEASE`.
+ *  @param[in] mods Bit field describing which modifier keys were held down.
  *
  *  @sa glfwSetMouseButtonCallback
  *
  *  @ingroup input
  */
-typedef void (* GLFWmousebuttonfun)(GLFWwindow*,int,int);
+typedef void (* GLFWmousebuttonfun)(GLFWwindow*,int,int,int);
 
 /*! @brief The function signature for cursor position callbacks.
  *
@@ -729,12 +739,13 @@ typedef void (* GLFWscrollfun)(GLFWwindow*,double,double);
  *  @param[in] window The window that received the event.
  *  @param[in] key The [keyboard key](@ref keys) that was pressed or released.
  *  @param[in] action @ref GLFW_PRESS, @ref GLFW_RELEASE or @ref GLFW_REPEAT.
+ *  @param[in] mods Bit field describing which modifier keys were held down.
  *
  *  @sa glfwSetKeyCallback
  *
  *  @ingroup input
  */
-typedef void (* GLFWkeyfun)(GLFWwindow*,int,int);
+typedef void (* GLFWkeyfun)(GLFWwindow*,int,int,int);
 
 /*! @brief The function signature for Unicode character callbacks.
  *
@@ -787,9 +798,10 @@ typedef struct
  */
 typedef struct
 {
-    unsigned short red[GLFW_GAMMA_RAMP_SIZE];
-    unsigned short green[GLFW_GAMMA_RAMP_SIZE];
-    unsigned short blue[GLFW_GAMMA_RAMP_SIZE];
+    unsigned short* red;
+    unsigned short* green;
+    unsigned short* blue;
+    unsigned int size;
 } GLFWgammaramp;
 
 
@@ -1048,19 +1060,18 @@ GLFWAPI const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* monitor, int* count);
  *  on whether it is focused.
  *
  *  @param[in] monitor The monitor to query.
- *  @return The current mode of the monitor, or a struct cleared to all zeroes
- *  if an error occurred.
+ *  @return The current mode of the monitor, or `NULL` if an error occurred.
  *
  *  @sa glfwGetVideoModes
  *
  *  @ingroup monitor
  */
-GLFWAPI GLFWvidmode glfwGetVideoMode(GLFWmonitor* monitor);
+GLFWAPI const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* monitor);
 
 /*! @brief Generates a gamma ramp and sets it for the specified monitor.
  *
- *  This function generates a gamma ramp from the specified exponent and then
- *  calls @ref glfwSetGamma with it.
+ *  This function generates a 256-element gamma ramp from the specified exponent
+ *  and then calls @ref glfwSetGamma with it.
  *
  *  @param[in] monitor The monitor whose gamma ramp to set.
  *  @param[in] gamma The desired exponent.
@@ -1074,14 +1085,11 @@ GLFWAPI void glfwSetGamma(GLFWmonitor* monitor, float gamma);
  *  This function retrieves the current gamma ramp of the specified monitor.
  *
  *  @param[in] monitor The monitor to query.
- *  @param[out] ramp Where to store the gamma ramp.
- *
- *  @bug This function does not yet support monitors whose original gamma ramp
- *  has more or less than 256 entries.
+ *  @return The current gamma ramp.
  *
  *  @ingroup gamma
  */
-GLFWAPI void glfwGetGammaRamp(GLFWmonitor* monitor, GLFWgammaramp* ramp);
+GLFWAPI const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* monitor);
 
 /*! @brief Sets the current gamma ramp for the specified monitor.
  *
@@ -1090,8 +1098,7 @@ GLFWAPI void glfwGetGammaRamp(GLFWmonitor* monitor, GLFWgammaramp* ramp);
  *  @param[in] monitor The monitor whose gamma ramp to set.
  *  @param[in] ramp The gamma ramp to use.
  *
- *  @bug This function does not yet support monitors whose original gamma ramp
- *  has more or less than 256 entries.
+ *  @note Gamma ramp sizes other than 256 are not supported by all hardware.
  *
  *  @ingroup gamma
  */
@@ -1671,7 +1678,7 @@ GLFWAPI void glfwWaitEvents(void);
 /*! @brief Returns the value of an input option for the specified window.
  *
  *  @param[in] window The window to query.
- *  @param[in] mode One of `GLFW_CURSOR_MODE`, `GLFW_STICKY_KEYS` or
+ *  @param[in] mode One of `GLFW_CURSOR`, `GLFW_STICKY_KEYS` or
  *  `GLFW_STICKY_MOUSE_BUTTONS`.
  *
  *  @sa glfwSetInputMode
@@ -1682,17 +1689,17 @@ GLFWAPI int glfwGetInputMode(GLFWwindow* window, int mode);
 
 /*! @brief Sets an input option for the specified window.
  *  @param[in] window The window whose input mode to set.
- *  @param[in] mode One of `GLFW_CURSOR_MODE`, `GLFW_STICKY_KEYS` or
+ *  @param[in] mode One of `GLFW_CURSOR`, `GLFW_STICKY_KEYS` or
  *  `GLFW_STICKY_MOUSE_BUTTONS`.
  *  @param[in] value The new value of the specified input mode.
  *
- *  If `mode` is `GLFW_CURSOR_MODE`, the value must be one of the supported input
+ *  If `mode` is `GLFW_CURSOR`, the value must be one of the supported input
  *  modes:
  *  - `GLFW_CURSOR_NORMAL` makes the cursor visible and behaving normally.
  *  - `GLFW_CURSOR_HIDDEN` makes the cursor invisible when it is over the client
  *    area of the window.
- *  - `GLFW_CURSOR_CAPTURED` makes the cursor invisible and unable to leave the
- *    window but unconstrained in terms of position.
+ *  - `GLFW_CURSOR_DISABLED` disables the cursor and removes any limitations on
+ *    cursor movement.
  *
  *  If `mode` is `GLFW_STICKY_KEYS`, the value must be either `GL_TRUE` to
  *  enable sticky keys, or `GL_FALSE` to disable it.  If sticky keys are
@@ -1760,9 +1767,9 @@ GLFWAPI int glfwGetMouseButton(GLFWwindow* window, int button);
  *  This function returns the last reported position of the cursor to the
  *  specified window.
  *
- *  If the cursor mode of the specified window is `GLFW_CURSOR_CAPTURED` then
- *  the cursor position is unbounded and limited only by the minimum and maximum
- *  values of a `double`.
+ *  If the cursor is disabled (with `GLFW_CURSOR_DISABLED`) then the cursor
+ *  position is unbounded and limited only by the minimum and maximum values of
+ *  a `double`.
  *
  *  The coordinate can be converted to their integer equivalents with the
  *  `floor` function.  Casting directly to an integer type works for positive
@@ -1786,9 +1793,9 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
  *  focused.  If the window does not have focus when this function is called, it
  *  fails silently.
  *
- *  If the cursor mode of the specified window is `GLFW_CURSOR_CAPTURED` then
- *  the cursor position is unbounded and limited only by the minimum and maximum
- *  values of a `double`.
+ *  If the cursor is disabled (with `GLFW_CURSOR_DISABLED`) then the cursor
+ *  position is unbounded and limited only by the minimum and maximum values of
+ *  a `double`.
  *
  *  @param[in] window The desired window.
  *  @param[in] xpos The desired x-coordinate, relative to the left edge of the
@@ -1930,37 +1937,31 @@ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cb
  *
  *  @ingroup input
  */
-GLFWAPI int glfwGetJoystickParam(int joy, int param);
+GLFWAPI int glfwJoystickPresent(int joy);
 
-/*! @brief Returns the values of axes of the specified joystick.
- *
- *  This function returns the current positions of axes of the specified
- *  joystick.
- *
+/*! @brief Returns the values of all axes of the specified joystick.
  *  @param[in] joy The joystick to query.
- *  @param[out] axes The array to hold the values.
- *  @param[in] numaxes The size of the provided array.
- *  @return The number of values written to `axes`, or zero if an error
- *  occurred.
+ *  @param[out] count The size of the returned array.
+ *  @return An array of axis values, or @c NULL if the joystick is not present.
+ *
+ *  @note The returned array is valid only until the next call to @ref
+ *  glfwGetJoystickAxes for that joystick.
  *
  *  @ingroup input
  */
-GLFWAPI int glfwGetJoystickAxes(int joy, float* axes, int numaxes);
+GLFWAPI float* glfwGetJoystickAxes(int joy, int* count);
 
-/*! @brief Returns the values of buttons of the specified joystick.
- *
- *  This function returns the current state of buttons of the specified
- *  joystick.
- *
+/*! @brief Returns the values of all buttons of the specified joystick.
  *  @param[in] joy The joystick to query.
- *  @param[out] buttons The array to hold the values.
- *  @param[in] numbuttons The size of the provided array.
- *  @return The number of values written to `buttons`, or zero if an error
- *  occurred.
+ *  @param[out] count The size of the returned array.
+ *  @return An array of axis values, or @c NULL if the joystick is not present.
+ *
+ *  @note The returned array is valid only until the next call to @ref
+ *  glfwGetJoystickButtons for that joystick.
  *
  *  @ingroup input
  */
-GLFWAPI int glfwGetJoystickButtons(int joy, unsigned char* buttons, int numbuttons);
+GLFWAPI unsigned char* glfwGetJoystickButtons(int joy, int* count);
 
 /*! @brief Returns the name of the specified joystick.
  *

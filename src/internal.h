@@ -48,7 +48,7 @@
 // inclusion of our own, newer glext.h below
 #define GL_GLEXT_LEGACY
 
-#include "../include/GL/glfw3.h"
+#include "../include/GLFW/glfw3.h"
 
 #if defined(_GLFW_USE_OPENGL)
  // This path may need to be changed if you build GLFW using your own setup
@@ -248,9 +248,10 @@ struct _GLFWmonitor
 
     GLFWvidmode*    modes;
     int             modeCount;
+    GLFWvidmode     currentMode;
 
     GLFWgammaramp   originalRamp;
-    GLboolean       rampChanged;
+    GLFWgammaramp   currentRamp;
 
     // This is defined in the window API's platform.h
     _GLFW_PLATFORM_MONITOR_STATE;
@@ -407,20 +408,20 @@ void _glfwPlatformSetClipboardString(_GLFWwindow* window, const char* string);
  */
 const char* _glfwPlatformGetClipboardString(_GLFWwindow* window);
 
-/*! @copydoc glfwGetJoystickParam
+/*! @copydoc glfwJoystickPresent
  *  @ingroup platform
  */
-int _glfwPlatformGetJoystickParam(int joy, int param);
+int _glfwPlatformJoystickPresent(int joy);
 
 /*! @copydoc glfwGetJoystickAxes
  *  @ingroup platform
  */
-int _glfwPlatformGetJoystickAxes(int joy, float* axes, int numaxes);
+float* _glfwPlatformGetJoystickAxes(int joy, int* count);
 
 /*! @copydoc glfwGetJoystickButtons
  *  @ingroup platform
  */
-int _glfwPlatformGetJoystickButtons(int joy, unsigned char* buttons, int numbuttons);
+unsigned char* _glfwPlatformGetJoystickButtons(int joy, int* count);
 
 /*! @copydoc glfwGetJoystickName
  *  @ingroup platform
@@ -591,9 +592,10 @@ void _glfwInputWindowCloseRequest(_GLFWwindow* window);
  *  @param[in] window The window that received the event.
  *  @param[in] key The key that was pressed or released.
  *  @param[in] action @ref GLFW_PRESS or @ref GLFW_RELEASE.
+ *  @param[in] mods The modifiers pressed when the event was generated.
  *  @ingroup event
  */
-void _glfwInputKey(_GLFWwindow* window, int key, int action);
+void _glfwInputKey(_GLFWwindow* window, int key, int action, int mods);
 
 /*! @brief Notifies shared code of a Unicode character input event.
  *  @param[in] window The window that received the event.
@@ -616,7 +618,7 @@ void _glfwInputScroll(_GLFWwindow* window, double x, double y);
  *  @param[in] action @ref GLFW_PRESS or @ref GLFW_RELEASE.
  *  @ingroup event
  */
-void _glfwInputMouseClick(_GLFWwindow* window, int button, int action);
+void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods);
 
 /*! @brief Notifies shared code of a cursor motion event.
  *  @param[in] window The window that received the event.
@@ -714,6 +716,14 @@ GLboolean _glfwIsValidContextConfig(_GLFWwndconfig* wndconfig);
  *  @ingroup utility
  */
 GLboolean _glfwIsValidContext(_GLFWwndconfig* wndconfig);
+
+/*! @ingroup utility
+ */
+void _glfwAllocGammaRamp(GLFWgammaramp* ramp, unsigned int size);
+
+/*! @ingroup utility
+ */
+void _glfwFreeGammaRamp(GLFWgammaramp* ramp);
 
 /*! @ingroup utility
  */

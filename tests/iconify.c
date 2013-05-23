@@ -28,7 +28,7 @@
 //
 //========================================================================
 
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +45,7 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error: %s\n", description);
 }
 
-static void key_callback(GLFWwindow* window, int key, int action)
+static void key_callback(GLFWwindow* window, int key, int action, int mods)
 {
     printf("%0.2f Key %s\n",
            glfwGetTime(),
@@ -117,9 +117,9 @@ int main(int argc, char** argv)
 
     if (monitor)
     {
-        GLFWvidmode mode = glfwGetVideoMode(monitor);
-        width = mode.width;
-        height = mode.height;
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        width = mode->width;
+        height = mode->height;
     }
     else
     {

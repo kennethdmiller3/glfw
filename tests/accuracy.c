@@ -30,7 +30,7 @@
 //========================================================================
 
 #define GLFW_INCLUDE_GLU
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,7 +74,7 @@ static void cursor_position_callback(GLFWwindow* window, double x, double y)
     cursor_y = y;
 }
 
-static void key_callback(GLFWwindow* window, int key, int action)
+static void key_callback(GLFWwindow* window, int key, int action, int mods)
 {
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         set_swap_interval(window, 1 - swap_interval);

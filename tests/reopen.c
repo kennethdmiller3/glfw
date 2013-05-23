@@ -33,7 +33,7 @@
 //
 //========================================================================
 
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +53,7 @@ static void window_close_callback(GLFWwindow* window)
     printf("Close callback triggered\n");
 }
 
-static void key_callback(GLFWwindow* window, int key, int action)
+static void key_callback(GLFWwindow* window, int key, int action, int mods)
 {
     if (action != GLFW_PRESS)
         return;

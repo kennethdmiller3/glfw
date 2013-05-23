@@ -58,6 +58,22 @@ typedef struct
 #define MWM_HINTS_DECORATIONS (1L << 1)
 
 
+// Translates an X event modifier state mask
+//
+int translateState(int state)
+{
+    int mods = 0;
+
+    if (state & ShiftMask)
+        mods |= GLFW_MOD_SHIFT;
+    if (state & ControlMask)
+        mods |= GLFW_MOD_CTRL;
+    if (state & Mod1Mask)
+        mods |= GLFW_MOD_ALT;
+
+    return mods;
+}
+
 // Translates an X Window key to internal coding
 //
 static int translateKey(int keycode)
@@ -511,31 +527,36 @@ static void processEvent(XEvent *event)
     {
         case KeyPress:
         {
-            _glfwInputKey(window, translateKey(event->xkey.keycode), GLFW_PRESS);
+            const int key = translateKey(event->xkey.keycode);
+            const int mods = translateState(event->xkey.state);
 
-            if (!(event->xkey.state & ControlMask) &&
-                !(event->xkey.state & Mod1Mask /*Alt*/))
-            {
-            _glfwInputChar(window, translateChar(&event->xkey));
-            }
+            _glfwInputKey(window, key, GLFW_PRESS, mods);
+
+            if (!(mods & GLFW_MOD_CTRL) && !(mods & GLFW_MOD_ALT))
+                _glfwInputChar(window, translateChar(&event->xkey));
 
             break;
         }
 
         case KeyRelease:
         {
-            _glfwInputKey(window, translateKey(event->xkey.keycode), GLFW_RELEASE);
+            const int key = translateKey(event->xkey.keycode);
+            const int mods = translateState(event->xkey.state);
+
+            _glfwInputKey(window, key, GLFW_RELEASE, mods);
             break;
         }
 
         case ButtonPress:
         {
+            const int mods = translateState(event->xbutton.state);
+
             if (event->xbutton.button == Button1)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS);
+                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, mods);
             else if (event->xbutton.button == Button2)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_PRESS);
+                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_PRESS, mods);
             else if (event->xbutton.button == Button3)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS);
+                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS, mods);
 
             // Modern X provides scroll events as mouse button presses
             else if (event->xbutton.button == Button4)
@@ -552,23 +573,28 @@ static void processEvent(XEvent *event)
 
         case ButtonRelease:
         {
+            const int mods = translateState(event->xbutton.state);
+
             if (event->xbutton.button == Button1)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_LEFT,
-                                     GLFW_RELEASE);
+                                     GLFW_RELEASE,
+                                     mods);
             }
             else if (event->xbutton.button == Button2)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_MIDDLE,
-                                     GLFW_RELEASE);
+                                     GLFW_RELEASE,
+                                     mods);
             }
             else if (event->xbutton.button == Button3)
             {
                 _glfwInputMouseClick(window,
                                      GLFW_MOUSE_BUTTON_RIGHT,
-                                     GLFW_RELEASE);
+                                     GLFW_RELEASE,
+                                     mods);
             }
             break;
         }
@@ -600,7 +626,7 @@ static void processEvent(XEvent *event)
 
                 int x, y;
 
-                if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+                if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 {
                     if (_glfw.focusedWindow != window)
                         break;
@@ -679,7 +705,7 @@ static void processEvent(XEvent *event)
         {
             _glfwInputWindowFocus(window, GL_TRUE);
 
-            if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+            if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 captureCursor(window);
 
             break;
@@ -689,7 +715,7 @@ static void processEvent(XEvent *event)
         {
             _glfwInputWindowFocus(window, GL_FALSE);
 
-            if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+            if (window->cursorMode == GLFW_CURSOR_DISABLED)
                 showCursor(window);
 
             break;
@@ -762,7 +788,7 @@ static void processEvent(XEvent *event)
 
                             double x, y;
 
-                            if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+                            if (window->cursorMode == GLFW_CURSOR_DISABLED)
                             {
                                 if (_glfw.focusedWindow != window)
                                     break;
@@ -1066,7 +1092,7 @@ void _glfwPlatformPollEvents(void)
     window = _glfw.focusedWindow;
     if (window)
     {
-        if (window->cursorMode == GLFW_CURSOR_CAPTURED)
+        if (window->cursorMode == GLFW_CURSOR_DISABLED)
         {
             int width, height;
             _glfwPlatformGetWindowSize(window, &width, &height);
@@ -1122,7 +1148,7 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
         case GLFW_CURSOR_HIDDEN:
             hideCursor(window);
             break;
-        case GLFW_CURSOR_CAPTURED:
+        case GLFW_CURSOR_DISABLED:
             captureCursor(window);
             break;
     }

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <GL/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #ifndef M_PI
 #define M_PI 3.141592654
@@ -211,13 +211,13 @@ static void animate(void)
 
 
 /* change view angle, exit upon ESC */
-void key( GLFWwindow* window, int k, int action )
+void key( GLFWwindow* window, int k, int action, int mods )
 {
   if( action != GLFW_PRESS ) return;
 
   switch (k) {
   case GLFW_KEY_Z:
-    if( glfwGetKey( window, GLFW_KEY_LEFT_SHIFT ) )
+    if( mods & GLFW_MOD_SHIFT )
       view_rotz -= 5.0;
     else
       view_rotz += 5.0;
