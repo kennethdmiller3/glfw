@@ -210,9 +210,11 @@ static int convertKeyMods(NSUInteger flags)
     if (flags & NSShiftKeyMask)
         mods |= GLFW_MOD_SHIFT;
     if (flags & NSControlKeyMask)
-        mods |= GLFW_MOD_CTRL;
+        mods |= GLFW_MOD_CONTROL;
     if (flags & NSAlternateKeyMask)
         mods |= GLFW_MOD_ALT;
+    if (flags & NSCommandKeyMask)
+        mods |= GLFW_MOD_SUPER;
 
     return mods;
 }
