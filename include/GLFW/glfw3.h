@@ -470,57 +470,57 @@ extern "C" {
  *  @{ */
 /*! @brief GLFW has not been initialized.
  */
-#define GLFW_NOT_INITIALIZED        0x00070001
+#define GLFW_NOT_INITIALIZED        0x00010001
 /*! @brief No context is current for this thread.
  */
-#define GLFW_NO_CURRENT_CONTEXT     0x00070002
+#define GLFW_NO_CURRENT_CONTEXT     0x00010002
 /*! @brief One of the enum parameters for the function was given an invalid
  *  enum.
  */
-#define GLFW_INVALID_ENUM           0x00070003
+#define GLFW_INVALID_ENUM           0x00010003
 /*! @brief One of the parameters for the function was given an invalid value.
  */
-#define GLFW_INVALID_VALUE          0x00070004
+#define GLFW_INVALID_VALUE          0x00010004
 /*! @brief A memory allocation failed.
  */
-#define GLFW_OUT_OF_MEMORY          0x00070005
+#define GLFW_OUT_OF_MEMORY          0x00010005
 /*! @brief GLFW could not find support for the requested client API on the
  *  system.
  */
-#define GLFW_API_UNAVAILABLE        0x00070006
+#define GLFW_API_UNAVAILABLE        0x00010006
 /*! @brief The requested client API version is not available.
  */
-#define GLFW_VERSION_UNAVAILABLE    0x00070007
+#define GLFW_VERSION_UNAVAILABLE    0x00010007
 /*! @brief A platform-specific error occurred that does not match any of the
  *  more specific categories.
  */
-#define GLFW_PLATFORM_ERROR         0x00070008
+#define GLFW_PLATFORM_ERROR         0x00010008
 /*! @brief The clipboard did not contain data in the requested format.
  */
-#define GLFW_FORMAT_UNAVAILABLE     0x00070009
+#define GLFW_FORMAT_UNAVAILABLE     0x00010009
 /*! @} */
 
 #define GLFW_FOCUSED                0x00020001
 #define GLFW_ICONIFIED              0x00020002
-#define GLFW_RESIZABLE              0x00022007
-#define GLFW_VISIBLE                0x00022008
-#define GLFW_DECORATED              0x00022009
+#define GLFW_RESIZABLE              0x00020003
+#define GLFW_VISIBLE                0x00020004
+#define GLFW_DECORATED              0x00020005
 
-#define GLFW_CONTEXT_REVISION       0x00020004
-#define GLFW_RED_BITS               0x00021000
-#define GLFW_GREEN_BITS             0x00021001
-#define GLFW_BLUE_BITS              0x00021002
-#define GLFW_ALPHA_BITS             0x00021003
-#define GLFW_DEPTH_BITS             0x00021004
-#define GLFW_STENCIL_BITS           0x00021005
-#define GLFW_ACCUM_RED_BITS         0x00021006
-#define GLFW_ACCUM_GREEN_BITS       0x00021007
-#define GLFW_ACCUM_BLUE_BITS        0x00021008
-#define GLFW_ACCUM_ALPHA_BITS       0x00021009
-#define GLFW_AUX_BUFFERS            0x0002100A
-#define GLFW_STEREO                 0x0002100B
-#define GLFW_SAMPLES                0x0002100C
-#define GLFW_SRGB_CAPABLE           0x0002100D
+#define GLFW_CONTEXT_REVISION       0x00021001
+#define GLFW_RED_BITS               0x00021002
+#define GLFW_GREEN_BITS             0x00021003
+#define GLFW_BLUE_BITS              0x00021004
+#define GLFW_ALPHA_BITS             0x00021005
+#define GLFW_DEPTH_BITS             0x00021006
+#define GLFW_STENCIL_BITS           0x00021007
+#define GLFW_ACCUM_RED_BITS         0x00021008
+#define GLFW_ACCUM_GREEN_BITS       0x00021009
+#define GLFW_ACCUM_BLUE_BITS        0x0002100A
+#define GLFW_ACCUM_ALPHA_BITS       0x0002100B
+#define GLFW_AUX_BUFFERS            0x0002100C
+#define GLFW_STEREO                 0x0002100D
+#define GLFW_SAMPLES                0x0002100E
+#define GLFW_SRGB_CAPABLE           0x0002100F
 
 #define GLFW_CLIENT_API             0x00022000
 #define GLFW_CONTEXT_VERSION_MAJOR  0x00022001
@@ -530,27 +530,27 @@ extern "C" {
 #define GLFW_OPENGL_DEBUG_CONTEXT   0x00022005
 #define GLFW_OPENGL_PROFILE         0x00022006
 
-#define GLFW_OPENGL_API             0x00000001
-#define GLFW_OPENGL_ES_API          0x00000002
+#define GLFW_OPENGL_API             0x00030001
+#define GLFW_OPENGL_ES_API          0x00030002
 
-#define GLFW_NO_ROBUSTNESS          0x00000000
-#define GLFW_NO_RESET_NOTIFICATION  0x00000001
-#define GLFW_LOSE_CONTEXT_ON_RESET  0x00000002
+#define GLFW_NO_ROBUSTNESS                   0
+#define GLFW_NO_RESET_NOTIFICATION  0x00031001
+#define GLFW_LOSE_CONTEXT_ON_RESET  0x00031002
 
-#define GLFW_OPENGL_NO_PROFILE      0x00000000
-#define GLFW_OPENGL_CORE_PROFILE    0x00000001
-#define GLFW_OPENGL_COMPAT_PROFILE  0x00000002
+#define GLFW_OPENGL_NO_PROFILE               0
+#define GLFW_OPENGL_CORE_PROFILE    0x00032001
+#define GLFW_OPENGL_COMPAT_PROFILE  0x00032002
 
-#define GLFW_CURSOR                 0x00030001
-#define GLFW_STICKY_KEYS            0x00030002
-#define GLFW_STICKY_MOUSE_BUTTONS   0x00030003
+#define GLFW_CURSOR                 0x00033001
+#define GLFW_STICKY_KEYS            0x00033002
+#define GLFW_STICKY_MOUSE_BUTTONS   0x00033003
 
-#define GLFW_CURSOR_NORMAL          0x00040001
-#define GLFW_CURSOR_HIDDEN          0x00040002
-#define GLFW_CURSOR_DISABLED        0x00040003
+#define GLFW_CURSOR_NORMAL          0x00034001
+#define GLFW_CURSOR_HIDDEN          0x00034002
+#define GLFW_CURSOR_DISABLED        0x00034003
 
-#define GLFW_CONNECTED              0x00061000
-#define GLFW_DISCONNECTED           0x00061001
+#define GLFW_CONNECTED              0x00040001
+#define GLFW_DISCONNECTED           0x00040002
 
 
 /*************************************************************************
@@ -787,10 +787,20 @@ typedef void (* GLFWmonitorfun)(GLFWmonitor*,int);
  */
 typedef struct
 {
+    /*! The width, in pixels, of the video mode.
+     */
     int width;
+    /*! The height, in pixels, of the video mode.
+     */
     int height;
+    /*! The bit depth of the red channel of the video mode.
+     */
     int redBits;
+    /*! The bit depth of the green channel of the video mode.
+     */
     int greenBits;
+    /*! The bit depth of the blue channel of the video mode.
+     */
     int blueBits;
 } GLFWvidmode;
 
@@ -804,9 +814,17 @@ typedef struct
  */
 typedef struct
 {
+    /*! An array of value describing the response of the red channel.
+     */
     unsigned short* red;
+    /*! An array of value describing the response of the green channel.
+     */
     unsigned short* green;
+    /*! An array of value describing the response of the blue channel.
+     */
     unsigned short* blue;
+    /*! The number of elements in each array.
+     */
     unsigned int size;
 } GLFWgammaramp;
 
@@ -1159,8 +1177,8 @@ GLFWAPI void glfwWindowHint(int target, int hint);
  *  as not all parameters and hints are
  *  [hard constraints](@ref window_hints_hard).  This includes the size of the
  *  window, especially for full screen windows.  To retrieve the actual
- *  properties of the window and context, use queries like @ref
- *  glfwGetWindowParam and @ref glfwGetWindowSize.
+ *  attributes of the created window and context, use queries like @ref
+ *  glfwGetWindowAttrib and @ref glfwGetWindowSize.
  *
  *  @param[in] width The desired width, in screen coordinates, of the window.
  *  This must be greater than zero.
@@ -1268,9 +1286,7 @@ GLFWAPI void glfwSetWindowTitle(GLFWwindow* window, const char* title);
  *  @param[out] xpos The x-coordinate of the upper-left corner of the client area.
  *  @param[out] ypos The y-coordinate of the upper-left corner of the client area.
  *
- *  @remarks Either or both coordinate parameters may be `NULL`.
- *
- *  @bug **Mac OS X:** The screen coordinate system is inverted.
+ *  @remarks Either or both coordinate arguments may be `NULL`.
  *
  *  @sa glfwSetWindowPos
  *
@@ -1303,8 +1319,6 @@ GLFWAPI void glfwGetWindowPos(GLFWwindow* window, int* xpos, int* ypos);
  *  @bug **X11:** Some window managers ignore the set position of hidden (i.e.
  *  unmapped) windows, instead placing them where it thinks is appropriate once
  *  they are shown.
- *
- *  @bug **Mac OS X:** The screen coordinate system is inverted.
  *
  *  @sa glfwGetWindowPos
  *
@@ -1362,9 +1376,6 @@ GLFWAPI void glfwSetWindowSize(GLFWwindow* window, int width, int height);
  *
  *  @note This function may only be called from the main thread.
  *
- *  @bug **Mac OS X:** This function is not yet implemented for
- *  full screen windows.
- *
  *  @sa glfwRestoreWindow
  *
  *  @ingroup window
@@ -1381,9 +1392,6 @@ GLFWAPI void glfwIconifyWindow(GLFWwindow* window);
  *  @param[in] window The window to restore.
  *
  *  @note This function may only be called from the main thread.
- *
- *  @bug **Mac OS X:** This function is not yet implemented for full screen
- *  windows.
  *
  *  @sa glfwIconifyWindow
  *
@@ -1435,56 +1443,19 @@ GLFWAPI void glfwHideWindow(GLFWwindow* window);
  */
 GLFWAPI GLFWmonitor* glfwGetWindowMonitor(GLFWwindow* window);
 
-/*! @brief Returns a parameter of the specified window.
+/*! @brief Returns an attribute of the specified window.
  *
- *  This function returns a property of the specified window.  There are many
- *  different properties, some related to the window and others to its context.
+ *  This function returns an attribute of the specified window.  There are many
+ *  attributes, some related to the window and others to its context.
  *
  *  @param[in] window The window to query.
- *  @param[in] param The parameter whose value to return.
- *  @return The value of the parameter, or zero if an error occurred.
- *
- *  @par Window parameters
- *
- *  The `GLFW_FOCUSED` parameter indicates whether the window is focused.
- *
- *  The `GLFW_ICONIFIED` parameter indicates whether the window is iconified.
- *
- *  The `GLFW_VISIBLE` parameter indicates whether the window is visible.
- *
- *  The `GLFW_RESIZABLE` parameter indicates whether the window is resizable
- *  by the user.
- *
- *  The `GLFW_DECORATED` parameter indicates whether the window is decorated.
- *
- *  @par Context parameters
- *
- *  The `GLFW_CLIENT_API` parameter indicates the client API provided by the
- *  window's context; either `GLFW_OPENGL_API` or `GLFW_OPENGL_ES_API`.
- *
- *  The `GLFW_CONTEXT_VERSION_MAJOR`, `GLFW_CONTEXT_VERSION_MINOR` and
- *  `GLFW_CONTEXT_REVISION` parameters indicate the client API version of the
- *  window's context.
- *
- *  The `GLFW_OPENGL_FORWARD_COMPAT` parameter is `GL_TRUE` if the window's
- *  context is an OpenGL forward-compatible one, or `GL_FALSE` otherwise.
- *
- *  The `GLFW_OPENGL_DEBUG_CONTEXT` parameter is `GL_TRUE` if the window's
- *  context is an OpenGL debug context, or `GL_FALSE` otherwise.
- *
- *  The `GLFW_OPENGL_PROFILE` parameter indicates the OpenGL profile used by the
- *  context.  This is `GLFW_OPENGL_CORE_PROFILE` or `GLFW_OPENGL_COMPAT_PROFILE`
- *  if the context uses a known profile, or `GLFW_OPENGL_NO_PROFILE` if the
- *  OpenGL profile is unknown or the context is for another client API.
- *
- *  The `GLFW_CONTEXT_ROBUSTNESS` parameter indicates the robustness strategy
- *  used by the context.  This is `GLFW_LOSE_CONTEXT_ON_RESET` or
- *  `GLFW_NO_RESET_NOTIFICATION` if the window's context supports robustness, or
- *  `GLFW_NO_ROBUSTNESS` otherwise.
+ *  @param[in] attrib The [window attribute](@ref window_attribs) whose value to
+ *  return.
+ *  @return The value of the attribute, or zero if an error occurred.
  *
  *  @ingroup window
  */
-GLFWAPI int glfwGetWindowParam(GLFWwindow* window, int param);
+GLFWAPI int glfwGetWindowAttrib(GLFWwindow* window, int attrib);
 
 /*! @brief Sets the user pointer of the specified window.
  *
@@ -1932,14 +1903,12 @@ GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcu
  */
 GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun);
 
-/*! @brief Returns a parameter of the specified joystick.
+/*! @brief Returns whether the specified joystick is present.
  *
- *  This function returns a parameter of the specified joystick.
+ *  This function returns whether the specified joystick is present.
  *
  *  @param[in] joy The joystick to query.
- *  @param[in] param The parameter whose value to return.
- *  @return The specified joystick's current value, or zero if the joystick is
- *  not present.
+ *  @return `GL_TRUE` if the joystick is present, or `GL_FALSE` otherwise.
  *
  *  @ingroup input
  */
@@ -2140,9 +2109,9 @@ GLFWAPI void glfwSwapInterval(int interval);
 /*! @brief Returns whether the specified extension is available.
  *
  *  This function returns whether the specified
- *  [OpenGL or context creation API extension](@ref glext) is supported by the
- *  current context.  For example, on Windows both the OpenGL and WGL extension
- *  strings are checked.
+ *  [OpenGL or context creation API extension](@ref context_glext) is supported
+ *  by the current context.  For example, on Windows both the OpenGL and WGL
+ *  extension strings are checked.
  *
  *  @param[in] extension The ASCII encoded name of the extension.
  *  @return `GL_TRUE` if the extension is available, or `GL_FALSE` otherwise.
@@ -2162,8 +2131,8 @@ GLFWAPI int glfwExtensionSupported(const char* extension);
  *  context.
  *
  *  This function returns the address of the specified
- *  [client API or extension function](@ref glext), if it is supported by the
- *  current context.
+ *  [client API or extension function](@ref context_glext), if it is supported
+ *  by the current context.
  *
  *  @param[in] procname The ASCII encoded name of the function.
  *  @return The address of the function, or `NULL` if the function is

@@ -762,7 +762,6 @@ static int createWindow(_GLFWwindow* window,
                         const _GLFWfbconfig* fbconfig)
 {
     int xpos, ypos, fullWidth, fullHeight;
-    POINT cursorPos;
     WCHAR* wideTitle;
 
     window->win32.dwStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -789,10 +788,7 @@ static int createWindow(_GLFWwindow* window,
             }
         }
         else
-        {
-            window->win32.dwStyle = WS_POPUP;
-            window->win32.dwExStyle = 0;
-        }
+            window->win32.dwStyle |= WS_POPUP;
 
         xpos = CW_USEDEFAULT;
         ypos = CW_USEDEFAULT;
@@ -829,12 +825,6 @@ static int createWindow(_GLFWwindow* window,
         return GL_FALSE;
     }
 
-    // Initialize cursor position data
-    GetCursorPos(&cursorPos);
-    ScreenToClient(window->win32.handle, &cursorPos);
-    window->win32.oldCursorX = window->cursorPosX = cursorPos.x;
-    window->win32.oldCursorY = window->cursorPosY = cursorPos.y;
-
     if (!_glfwCreateContext(window, wndconfig, fbconfig))
         return GL_FALSE;
 
@@ -869,12 +859,6 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
     {
         _glfw.win32.classAtom = registerWindowClass();
         if (!_glfw.win32.classAtom)
-            return GL_FALSE;
-    }
-
-    if (window->monitor)
-    {
-        if (!_glfwSetVideoMode(window->monitor, &window->videoMode))
             return GL_FALSE;
     }
 
@@ -919,6 +903,9 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
 
     if (window->monitor)
     {
+        if (!_glfwSetVideoMode(window->monitor, &window->videoMode))
+            return GL_FALSE;
+
         // Place the window above all topmost windows
         _glfwPlatformShowWindow(window);
         SetWindowPos(window->win32.handle, HWND_TOPMOST, 0,0,0,0,
