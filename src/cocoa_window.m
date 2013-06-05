@@ -111,9 +111,11 @@ static void centerCursor(_GLFWwindow *window)
 {
     [window->nsgl.context update];
 
-    int width, height;
-    _glfwPlatformGetWindowSize(window, &width, &height);
-    _glfwInputWindowSize(window, width, height);
+    const NSRect contentRect = [window->ns.view frame];
+    const NSRect fbRect = [window->ns.view convertRectToBacking:contentRect];
+
+    _glfwInputFramebufferSize(window, fbRect.size.width, fbRect.size.height);
+    _glfwInputWindowSize(window, contentRect.size.width, contentRect.size.height);
     _glfwInputWindowDamage(window);
 
     if (window->cursorMode == GLFW_CURSOR_DISABLED)
@@ -456,8 +458,7 @@ static int convertMacKeyCode(unsigned int macKeyCode)
         _glfwInputCursorMotion(window, [event deltaX], [event deltaY]);
     else
     {
-        const NSRect contentRect =
-            [window->ns.object contentRectForFrameRect:[window->ns.object frame]];
+        const NSRect contentRect = [window->ns.view frame];
         const NSPoint p = [event locationInWindow];
 
         _glfwInputCursorMotion(window, p.x, contentRect.size.height - p.y);
@@ -514,6 +515,14 @@ static int convertMacKeyCode(unsigned int macKeyCode)
 - (void)mouseEntered:(NSEvent *)event
 {
     _glfwInputCursorEnter(window, GL_TRUE);
+}
+
+- (void)viewDidChangeBackingProperties
+{
+    const NSRect contentRect = [window->ns.view frame];
+    const NSRect fbRect = [window->ns.view convertRectToBacking:contentRect];
+
+    _glfwInputFramebufferSize(window, fbRect.size.width, fbRect.size.height);
 }
 
 - (void)updateTrackingAreas
@@ -662,7 +671,7 @@ static NSString* findAppName(void)
         id name = [infoDictionary objectForKey:GLFWNameKeys[i]];
         if (name &&
             [name isKindOfClass:[NSString class]] &&
-            ![@"" isEqualToString:name])
+            ![name isEqualToString:@""])
         {
             return name;
         }
@@ -805,6 +814,8 @@ static GLboolean createWindow(_GLFWwindow* window,
 
     window->ns.view = [[GLFWContentView alloc] initWithGlfwWindow:window];
 
+    [window->ns.view setWantsBestResolutionOpenGLSurface:YES];
+
     [window->ns.object setTitle:[NSString stringWithUTF8String:wndconfig->title]];
     [window->ns.object setContentView:window->ns.view];
     [window->ns.object setDelegate:window->ns.delegate];
@@ -915,8 +926,7 @@ void _glfwPlatformSetWindowPos(_GLFWwindow* window, int x, int y)
 
 void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
 {
-    const NSRect contentRect =
-        [window->ns.object contentRectForFrameRect:[window->ns.object frame]];
+    const NSRect contentRect = [window->ns.view frame];
 
     if (width)
         *width = contentRect.size.width;
@@ -927,6 +937,11 @@ void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height)
 void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height)
 {
     [window->ns.object setContentSize:NSMakeSize(width, height)];
+}
+
+void _glfwPlatformGetFramebufferSize(_GLFWwindow* window, int* width, int* height)
+{
+    _glfwPlatformGetWindowSize(window, width, height);
 }
 
 void _glfwPlatformIconifyWindow(_GLFWwindow* window)
@@ -995,8 +1010,7 @@ void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
     }
     else
     {
-        const NSRect contentRect =
-            [window->ns.object contentRectForFrameRect:[window->ns.object frame]];
+        const NSRect contentRect = [window->ns.view frame];
         const NSPoint localPoint = NSMakePoint(x, contentRect.size.height - y - 1);
         const NSPoint globalPoint = [window->ns.object convertBaseToScreen:localPoint];
 
