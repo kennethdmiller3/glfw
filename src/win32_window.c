@@ -34,6 +34,8 @@
 #include <malloc.h>
 #include <windowsx.h>
 
+#define _GLFW_KEY_INVALID -2
+
 
 // Updates the cursor clip rect
 //
@@ -204,7 +206,9 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
             if (PeekMessage(&next, NULL, 0, 0, PM_NOREMOVE))
             {
                 if (next.message == WM_KEYDOWN ||
-                    next.message == WM_SYSKEYDOWN)
+                    next.message == WM_SYSKEYDOWN ||
+                    next.message == WM_KEYUP ||
+                    next.message == WM_SYSKEYUP)
                 {
                     if (next.wParam == VK_MENU &&
                         (next.lParam & 0x01000000) &&
@@ -212,7 +216,7 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
                     {
                         // Next message is a RALT down message, which
                         // means that this is not a proper LCTRL message
-                        return -1;
+                        return _GLFW_KEY_INVALID;
                     }
                 }
             }
@@ -358,8 +362,8 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
         default:               break;
     }
 
-    // No matching translation was found, so return -1
-    return -1;
+    // No matching translation was found
+    return GLFW_KEY_UNKNOWN;
 }
 
 // Window callback function (handles window events)
@@ -469,7 +473,12 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
         {
-            _glfwInputKey(window, translateKey(wParam, lParam), GLFW_PRESS, getKeyMods());
+            const int scancode = (lParam >> 16) & 0xff;
+            const int key = translateKey(wParam, lParam);
+            if (key == _GLFW_KEY_INVALID)
+                break;
+
+            _glfwInputKey(window, key, scancode, GLFW_PRESS, getKeyMods());
             break;
         }
 
@@ -498,21 +507,26 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
         case WM_SYSKEYUP:
         {
             const int mods = getKeyMods();
+            const int scancode = (lParam >> 16) & 0xff;
+            const int key = translateKey(wParam, lParam);
+            if (key == _GLFW_KEY_INVALID)
+                break;
 
             if (wParam == VK_SHIFT)
             {
-                // Special trick: release both shift keys on SHIFT up event
-                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, GLFW_RELEASE, mods);
-                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, GLFW_RELEASE, mods);
+                // Release both Shift keys on Shift up event, as only one event
+                // is sent even if both keys are released
+                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, scancode, GLFW_RELEASE, mods);
+                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, scancode, GLFW_RELEASE, mods);
             }
             else if (wParam == VK_SNAPSHOT)
             {
                 // Key down is not reported for the print screen key
-                _glfwInputKey(window, GLFW_KEY_PRINT_SCREEN, GLFW_PRESS, mods);
-                _glfwInputKey(window, GLFW_KEY_PRINT_SCREEN, GLFW_RELEASE, mods);
+                _glfwInputKey(window, key, scancode, GLFW_PRESS, mods);
+                _glfwInputKey(window, key, scancode, GLFW_RELEASE, mods);
             }
             else
-                _glfwInputKey(window, translateKey(wParam, lParam), GLFW_RELEASE, getKeyMods());
+                _glfwInputKey(window, key, scancode, GLFW_RELEASE, mods);
 
             break;
         }
@@ -1061,10 +1075,10 @@ void _glfwPlatformPollEvents(void)
             // See if this differs from our belief of what has happened
             // (we only have to check for lost key up events)
             if (!lshiftDown && window->key[GLFW_KEY_LEFT_SHIFT] == 1)
-                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, GLFW_RELEASE, mods);
+                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, 0, GLFW_RELEASE, mods);
 
             if (!rshiftDown && window->key[GLFW_KEY_RIGHT_SHIFT] == 1)
-                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, GLFW_RELEASE, mods);
+                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, 0, GLFW_RELEASE, mods);
         }
 
         // Did the cursor move in an focused window that has captured the cursor
