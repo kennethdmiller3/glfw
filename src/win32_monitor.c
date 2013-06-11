@@ -62,6 +62,7 @@ GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* desired)
     if (_glfwCompareVideoModes(&current, best) == 0)
         return GL_TRUE;
 
+    ZeroMemory(&dm, sizeof(dm));
     dm.dmSize = sizeof(DEVMODE);
     dm.dmFields           = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL |
                             DM_DISPLAYFREQUENCY;
@@ -105,6 +106,8 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
     _GLFWmonitor** monitors = NULL;
     DWORD adapterIndex = 0;
     int primaryIndex = 0;
+
+    *count = 0;
 
     for (;;)
     {
@@ -151,6 +154,8 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
             _glfwDestroyMonitors(monitors, found);
             _glfwInputError(GLFW_PLATFORM_ERROR,
                             "Failed to convert string to UTF-8");
+
+            free(monitors);
             return NULL;
         }
 
