@@ -225,7 +225,7 @@ extern "C" {
  *  API changes.
  *  @ingroup init
  */
-#define GLFW_VERSION_REVISION       0
+#define GLFW_VERSION_REVISION       1
 /*! @} */
 
 /*! @name Key and button actions
@@ -1067,7 +1067,8 @@ GLFWAPI const char* glfwGetMonitorName(GLFWmonitor* monitor);
  *  @return The previously set callback, or `NULL` if no callback was set or an
  *  error occurred.
  *
- *  @bug This callback is not yet called on monitor configuration changes.
+ *  @bug **X11:** This callback is not yet called on monitor configuration
+ *  changes.
  *
  *  @ingroup monitor
  */
@@ -1741,13 +1742,16 @@ GLFWAPI int glfwGetInputMode(GLFWwindow* window, int mode);
  *  enable sticky keys, or `GL_FALSE` to disable it.  If sticky keys are
  *  enabled, a key press will ensure that @ref glfwGetKey returns @ref
  *  GLFW_PRESS the next time it is called even if the key had been released
- *  before the call.
+ *  before the call.  This is useful when you are only interested in whether
+ *  keys have been pressed but not when or in which order.
  *
  *  If `mode` is `GLFW_STICKY_MOUSE_BUTTONS`, the value must be either `GL_TRUE`
  *  to enable sticky mouse buttons, or `GL_FALSE` to disable it.  If sticky
  *  mouse buttons are enabled, a mouse button press will ensure that @ref
  *  glfwGetMouseButton returns @ref GLFW_PRESS the next time it is called even
- *  if the mouse button had been released before the call.
+ *  if the mouse button had been released before the call.  This is useful when
+ *  you are only interested in whether mouse buttons have been pressed but not
+ *  when or in which order.
  *
  *  @sa glfwGetInputMode
  *

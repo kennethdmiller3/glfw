@@ -276,9 +276,13 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
     }
 
     closest = _glfwChooseFBConfig(desired, usableConfigs, usableCount);
-    if (closest)
-        *result = closest->wgl;
+    if (!closest)
+    {
+        free(usableConfigs);
+        return GL_FALSE;
+    }
 
+    *result = closest->wgl;
     free(usableConfigs);
 
     return GL_TRUE;
@@ -328,7 +332,7 @@ int _glfwCreateContext(_GLFWwindow* window,
                        const _GLFWfbconfig* fbconfig)
 {
     int attribs[40];
-    int pixelFormat;
+    int pixelFormat = 0;
     PIXELFORMATDESCRIPTOR pfd;
     HGLRC share = NULL;
 

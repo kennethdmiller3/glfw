@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(GLFW_VERSION_MAJOR "3")
 set(GLFW_VERSION_MINOR "0")
-set(GLFW_VERSION_PATCH "0")
+set(GLFW_VERSION_PATCH "1")
 set(GLFW_VERSION_EXTRA "")
 set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
 set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
@@ -19,7 +19,7 @@ find_package(Doxygen)
 
 option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 if (GLFW_DOCUMENT_INTERNALS)
-    set(GLFW_DOC_HEADERS "${GLFW_SOURCE_DIR}/src/internal.h")
+    set(GLFW_INTERNAL_DOCS "${GLFW_SOURCE_DIR}/src/internal.h ${GLFW_SOURCE_DIR}/docs/internal.dox")
 endif()
 
 if (APPLE)
