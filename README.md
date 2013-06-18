@@ -6,13 +6,12 @@ GLFW is a free, Open Source, portable library for OpenGL and OpenGL ES
 application development.  It provides a simple, platform-independent API for
 creating windows and contexts, reading input, handling events, etc.
 
-Version 3.0.1 is *not yet described*.  As this is a patch release, there are no
+Version 3.0.2 is *not yet described*.  As this is a patch release, there are no
 API changes.
 
 If you are new to GLFW, you may find the
 [introductory tutorial](http://www.glfw.org/docs/3.0/quick.html) for GLFW
-3 useful.  If
-you have used GLFW 2 in the past, there is a
+3 useful.  If you have used GLFW 2 in the past, there is a
 [transition guide](http://www.glfw.org/docs/3.0/moving.html) for moving to the
 GLFW 3 API.
 
@@ -70,8 +69,8 @@ directory of bundled applications to the `Contents/Resources` directory.
 
 #### Windows specific options
 
-`USE_MSVC_RUNTIME_LIBRARY_DLL` determines whether to use the DLL version of the
-Visual C++ runtime library.
+`USE_MSVC_RUNTIME_LIBRARY_DLL` determines whether to use the DLL version or the
+static library version of the Visual C++ runtime library.
 
 
 #### EGL specific options
@@ -100,8 +99,8 @@ See the [GLFW 3.0 documentation](http://www.glfw.org/docs/3.0/).
 
 ## Changelog
 
- - [Win32] Bugfix: Context creation was attempted even if no valid pixel formats
-                   had been found
+ - Bugfix: The `-Wall` flag was not used with Clang and other GCC compatibles
+ - Bugfix: The default for `GLFW_ALPHA_BITS` was set to zero
 
 
 ## Contact
@@ -134,6 +133,7 @@ skills.
  - Matt Arsenault
  - Keith Bauer
  - John Bartholomew
+ - Niklas Behrens
  - Niklas Bergström
  - blanco
  - Lambert Clara
@@ -149,6 +149,7 @@ skills.
  - Stefan Gustavson
  - Sylvain Hellegouarch
  - heromyth
+ - Paul Holden
  - Toni Jovanoski
  - Osman Keskin
  - Cameron King
@@ -160,6 +161,7 @@ skills.
  - Martins Mozeiko
  - Tristam MacDonald
  - Hans Mackowiak
+ - Kyle McDonald
  - David Medlock
  - Jonathan Mercier
  - Marcel Metz
@@ -167,7 +169,7 @@ skills.
  - Jeff Molofee
  - Jon Morton
  - Julian Møller
- - Ozzy at Orkysquad
+ - Ozzy
  - Peoro
  - Braden Pellett
  - Arturo J. Pérez
@@ -183,6 +185,7 @@ skills.
  - Bradley Smith
  - Julian Squires
  - Johannes Stein
+ - Justin Stoecker
  - Nathan Sweet
  - TTK-Bandit
  - Sergey Tikhomirov
