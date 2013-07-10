@@ -111,7 +111,7 @@ static GLboolean chooseFBConfig(const _GLFWfbconfig* desired, GLXFBConfig* resul
         return GL_FALSE;
     }
 
-    usableConfigs = (_GLFWfbconfig*) calloc(nativeCount, sizeof(_GLFWfbconfig));
+    usableConfigs = calloc(nativeCount, sizeof(_GLFWfbconfig));
     usableCount = 0;
 
     for (i = 0;  i < nativeCount;  i++)
@@ -191,14 +191,12 @@ static GLXContext createLegacyContext(_GLFWwindow* window,
                                                      share,
                                                      True);
     }
-    else
-    {
-        return glXCreateNewContext(_glfw.x11.display,
-                                   fbconfig,
-                                   GLX_RGBA_TYPE,
-                                   share,
-                                   True);
-    }
+
+    return glXCreateNewContext(_glfw.x11.display,
+                               fbconfig,
+                               GLX_RGBA_TYPE,
+                               share,
+                               True);
 }
 
 
