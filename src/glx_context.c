@@ -45,14 +45,6 @@ void (*glXGetProcAddressEXT(const GLubyte* procName))();
 #endif
 
 
-// Error handler used when creating a context
-//
-static int errorHandler(Display *display, XErrorEvent* event)
-{
-    _glfw.glx.errorCode = event->error_code;
-    return 0;
-}
-
 // Returns the specified attribute of the specified GLXFBConfig
 // NOTE: Do not call this unless we have found GLX 1.3+ or GLX_SGIX_fbconfig
 //
@@ -352,7 +344,7 @@ void _glfwTerminateContextAPI(void)
 { \
     attribs[index++] = attribName; \
     attribs[index++] = attribValue; \
-    assert(index < sizeof(attribs) / sizeof(attribs[0])); \
+    assert((size_t) index < sizeof(attribs) / sizeof(attribs[0])); \
 }
 
 // Prepare for creation of the OpenGL context
@@ -427,8 +419,7 @@ int _glfwCreateContext(_GLFWwindow* window,
         }
     }
 
-    _glfw.glx.errorCode = Success;
-    XSetErrorHandler(errorHandler);
+    _glfwGrabXErrorHandler();
 
     if (_glfw.glx.ARB_create_context)
     {
@@ -499,7 +490,7 @@ int _glfwCreateContext(_GLFWwindow* window,
             // HACK: This is a fallback for the broken Mesa implementation of
             // GLX_ARB_create_context_profile, which fails default 1.0 context
             // creation with a GLXBadProfileARB error in violation of the spec
-            if (_glfw.glx.errorCode == _glfw.glx.errorBase + GLXBadProfileARB &&
+            if (_glfw.x11.errorCode == _glfw.glx.errorBase + GLXBadProfileARB &&
                 wndconfig->clientAPI == GLFW_OPENGL_API &&
                 wndconfig->glProfile == GLFW_OPENGL_ANY_PROFILE &&
                 wndconfig->glForward == GL_FALSE)
@@ -511,19 +502,11 @@ int _glfwCreateContext(_GLFWwindow* window,
     else
         window->glx.context = createLegacyContext(window, native, share);
 
-    XSetErrorHandler(NULL);
+    _glfwReleaseXErrorHandler();
 
     if (window->glx.context == NULL)
     {
-        char buffer[8192];
-        XGetErrorText(_glfw.x11.display,
-                      _glfw.glx.errorCode,
-                      buffer, sizeof(buffer));
-
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "GLX: Failed to create context: %s",
-                        buffer);
-
+        _glfwInputXError(GLFW_PLATFORM_ERROR, "GLX: Failed to create context");
         return GL_FALSE;
     }
 
