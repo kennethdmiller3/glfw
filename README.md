@@ -112,6 +112,7 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
                    returned by `glfwGetProcAddress`
  - [Win32] Bugfix: The user32 and dwmapi module handles were not freed on
                    library termination
+ - [Cocoa] Added support for precise scrolling deltas on OS X 10.7 and later
  - [Cocoa] Enabled explicit creation of OpenGL 3.x and 4.x contexts as supported
            by OS X 10.9
  - [Cocoa] Bugfix: The clipboard string was not freed on terminate
@@ -121,6 +122,8 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
                  of the actual resolution of the selected video mode
  - [X11] Bugfix: Screensaver override for full screen windows had a possible
                  race condition
+ - [X11] Bugfix: The reported window position did not account for the size of
+                 the window frame on some WMs
 
 
 ## Contact
@@ -150,6 +153,7 @@ skills.
 
  - Bobyshev Alexander
  - artblanc
+ - arturo
  - Matt Arsenault
  - Keith Bauer
  - John Bartholomew

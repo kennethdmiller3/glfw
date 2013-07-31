@@ -1,7 +1,6 @@
 /*************************************************************************
- * GLFW - An OpenGL library
- * API version: 3.0
- * WWW:         http://www.glfw.org/
+ * GLFW 3.0 - www.glfw.org
+ * A library for OpenGL, window and input
  *------------------------------------------------------------------------
  * Copyright (c) 2002-2006 Marcus Geelnard
  * Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
@@ -132,15 +131,18 @@ extern "C" {
  #define GLFW_CALLBACK_DEFINED
 #endif /* CALLBACK */
 
-/* Most <GL/glu.h> variants on Windows need wchar_t */
-#if defined(_WIN32)
- #include <stddef.h>
-#endif
+/* Most GL/glu.h variants on Windows need wchar_t
+ * OpenGL/gl.h blocks the definition of ptrdiff_t by glext.h on OS X */
+#include <stddef.h>
 
 
 /* ---------------- GLFW related system specific defines ----------------- */
 
 #if defined(GLFW_DLL) && defined(_GLFW_BUILD_DLL)
+ /* GLFW_DLL is defined by users of GLFW when compiling programs that will link
+  * to the DLL version of the GLFW library.  _GLFW_BUILD_DLL is defined by the
+  * GLFW configuration header when compiling the DLL version of the library.
+  */
  #error "You must not have both GLFW_DLL and _GLFW_BUILD_DLL defined"
 #endif
 

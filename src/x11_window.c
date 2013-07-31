@@ -1,8 +1,5 @@
 //========================================================================
-// GLFW - An OpenGL library
-// Platform:    X11
-// API version: 3.0
-// WWW:         http://www.glfw.org/
+// GLFW 3.0 X11 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
@@ -987,6 +984,17 @@ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
 
     XTranslateCoordinates(_glfw.x11.display, window->x11.handle, _glfw.x11.root,
                           0, 0, &x, &y, &child);
+
+    if (child != None)
+    {
+        int left, top;
+
+        XTranslateCoordinates(_glfw.x11.display, window->x11.handle, child,
+                              0, 0, &left, &top, &child);
+
+        x -= left;
+        y -= top;
+    }
 
     if (xpos)
         *xpos = x;
