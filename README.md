@@ -18,26 +18,123 @@ the GLFW 3 API.
 
 ## Compiling GLFW
 
-To compile GLFW and the accompanying example programs, you will need the
-[CMake](http://www.cmake.org/) build system.
-
-
 ### Dependencies
 
-#### X11 dependencies
+To compile GLFW and the accompanying example programs, you will need **CMake**,
+which will generate the project files or makefiles for your particular
+development environment.  If you are on a Unix-like system such as Linux or
+FreeBSD or have a package system like Fink, MacPorts, Cygwin or Homebrew, you
+can simply install its CMake package.  If not, you can get installers for
+Windows and OS X from the [CMake website](http://www.cmake.org/).
 
-To compile GLFW for X11 and GLX, you need to have the X and OpenGL header
-packages installed.  For example, on Ubuntu and other distributions based on
-Debian GNU/Linux, you need to install the `xorg-dev` and `libglu1-mesa-dev`
-packages.  Note that using header files from Mesa *will not* tie your binary to
-the Mesa implementation of OpenGL.
+Additional dependencies are listed below.
+
+
+#### Visual C++ on Windows
+
+The Microsoft Platform SDK that is installed along with Visual C++ contains all
+the necessary headers, link libraries and tools except for CMake.
+
+
+#### MinGW or MinGW-w64 on Windows
+
+These packages contain all the necessary headers, link libraries and tools
+except for CMake.
+
+
+#### MinGW or MinGW-w64 cross-compilation
+
+Both Cygwin and many Linux distributions have MinGW or MinGW-w64 packages.  For
+example, Cygwin has the `mingw64-i686-gcc` and `mingw64-x86_64-gcc` packages
+for 32- and 64-bit version of MinGW-w64, while Debian GNU/Linux and derivatives
+like Ubuntu have the `mingw-w64` package for both.
+
+GLFW has CMake toolchain files in the `CMake/` directory that allow for easy
+cross-compilation of Windows binaries.  To use these files you need to add a
+special parameter when generating the project files or makefiles:
+
+    cmake -DCMAKE_TOOLCHAIN_FILE=<toolchain-file> .
+
+The exact toolchain file to use depends on the prefix used by the MinGW or
+MinGW-w64 binaries on your system.  You can usually see this in the /usr
+directory.  For example, both the Debian/Ubuntu and Cygwin MinGW-w64 packages
+have `/usr/x86_64-w64-mingw32` for the 64-bit compilers, so the correct
+invocation would be:
+
+    cmake -DCMAKE_TOOLCHAIN_FILE=CMake/x86_64-w64-mingw32.cmake .
+
+For more details see the article
+[CMake Cross Compiling](http://www.paraview.org/Wiki/CMake_Cross_Compiling) on
+the CMake wiki.
+
+
+#### Xcode on OS X
+
+Xcode contains all necessary tools except for CMake.  The necessary headers and
+libraries are included in the core OS frameworks.  Xcode can be downloaded from
+the Mac App Store.
+
+
+#### Unix-like systems with X11
+
+To compile GLFW for X11, you need to have the X11 and OpenGL header packages
+installed, as well as the basic development tools like GCC and make.  For
+example, on Ubuntu and other distributions based on Debian GNU/Linux, you need
+to install the `xorg-dev` and `libglu1-mesa-dev` packages.  The former pulls in
+all X.org header packages and the latter pulls in the Mesa OpenGL and GLU
+packages.  Note that using header files and libraries from Mesa during
+compilation *will not* tie your binaries to the Mesa implementation of OpenGL.
+
+
+### Generating with CMake
+
+Once you have all necessary dependencies, it is time to generate the project
+files or makefiles for your development environment.  CMake needs to know two
+paths for this: the path to the source directory and the target path for the
+generated files and compiled binaries.  If these are the same, it is called an
+in-tree build, otherwise it is called an out-of-tree build.
+
+One of several advantages of out-of-tree builds is that you can generate files
+and compile for different development environments using a single source tree.
+
+
+#### Using CMake from the command-line
+
+To make an in-tree build, enter the root directory of the GLFW source tree and
+run CMake.  The current directory is used as target path, while the path
+provided as an argument is used to find the source tree.
+
+    cd <glfw-root-dir>
+    cmake .
+
+To make an out-of-tree build, make another directory, enter it and run CMake
+with the (relative or absolute) path to the root of the source tree as an
+argument.
+
+    cd <glfw-root-dir>
+    mkdir build
+    cd build
+    cmake ..
+
+
+#### Using the CMake GUI
+
+If you are using the GUI version, choose the root of the GLFW source tree as
+source location and the same directory or another, empty directory as the
+destination for binaries.  Choose *Configure*, change any options you wish to,
+*Configure* again to let the changes take effect and then *Generate*.
 
 
 ### CMake options
 
-There are a number of CMake build options for GLFW, although not all are
+The CMake files for GLFW provide a number of options, although not all are
 available on all supported platforms.  Some of these are de facto standards
 among CMake users and so have no `GLFW_` prefix.
+
+If you are using the GUI version of CMake, these are listed and can be changed
+from there.  If you are using the command-line version, use the `ccmake` tool.
+Some package systems like Ubuntu and other distributions based on Debian
+GNU/Linux have this tool in a separate `cmake-curses-gui` package.
 
 
 #### Shared options
@@ -76,6 +173,10 @@ static library version of the Visual C++ runtime library.
 when DWM compositing is enabled.  This can lead to severe jitter and is not
 usually recommended.
 
+`GLFW_USE_OPTIMUS_HPG` determines whether to export the `NvOptimusEnablement`
+symbol, which forces the use of the high-performance GPU on nVidia Optimus
+systems.
+
 
 #### EGL specific options
 
@@ -107,10 +208,12 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
  - Bugfix: The default for `GLFW_ALPHA_BITS` was set to zero
  - [Win32] Added `_GLFW_USE_DWM_SWAP_INTERVAL` for forcing the swap interval
            to be set even when DWM compositing is enabled
+ - [Win32] Added support for forcing the use of the high-performance GPU
+           on nVidia Optimus systems
  - [Win32] Bugfix: The clipboard string was not freed on terminate
  - [Win32] Bugfix: Entry points for OpenGL 1.0 and 1.1 functions were not
                    returned by `glfwGetProcAddress`
- - [Win32] Bugfix: The user32 and dwmapi module handles were not freed on
+ - [Win32] Bugfix: The `user32` and `dwmapi` module handles were not freed on
                    library termination
  - [Cocoa] Added support for precise scrolling deltas on OS X 10.7 and later
  - [Cocoa] Enabled explicit creation of OpenGL 3.x and 4.x contexts as supported
@@ -125,7 +228,7 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
  - [X11] Bugfix: The reported window position did not account for the size of
                  the window frame on some WMs
  - [X11] Bugfix: The original video mode of a monitor was overwritten by calls
-                 to glfwSetWindowSize
+                 to `glfwSetWindowSize`
 
 
 ## Contact
