@@ -6,8 +6,9 @@ GLFW is a free, Open Source, portable library for OpenGL and OpenGL ES
 application development.  It provides a simple, platform-independent API for
 creating windows and contexts, reading input, handling events, etc.
 
-Version 3.0.2 is *not yet described*.  As this is a patch release, there are no
-API changes.
+Version 3.0.2 adds support for OpenGL 4 on and precise scrolling deltas on OS
+X and fixes for a number of bugs affecting all supported platforms.  As this is
+a patch release, there are no API changes.
 
 If you are new to GLFW, you may find the
 [introductory tutorial](http://www.glfw.org/docs/latest/quick.html) for GLFW
@@ -204,8 +205,11 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
 
 ## Changelog
 
+ - Allowed character callback to be triggered regardless of modifier keys
  - Bugfix: The `-Wall` flag was not used with Clang and other GCC compatibles
  - Bugfix: The default for `GLFW_ALPHA_BITS` was set to zero
+ - Bugfix: `glfwInit` would segfault if monitor enumeration failed and no error
+           callback was set
  - [Win32] Added `_GLFW_USE_DWM_SWAP_INTERVAL` for forcing the swap interval
            to be set even when DWM compositing is enabled
  - [Win32] Added support for forcing the use of the high-performance GPU
