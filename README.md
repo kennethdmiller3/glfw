@@ -146,6 +146,12 @@ library or as a DLL / shared library / dynamic library.
 installed.  If it is empty, it is installed to `$PREFIX/lib`.  If it is set to
 `64`, it is installed to `$PREFIX/lib64`.
 
+`GLFW_CLIENT_LIBRARY` determines which client API library to use.  If set to
+`opengl` the OpenGL library is used, if set to `glesv1` for the OpenGL ES 1.x
+library is used, or if set to `glesv2` the OpenGL ES 2.0 library is used.  The
+selected library and its header files must be present on the system for this to
+work.
+
 `GLFW_BUILD_EXAMPLES` determines whether the GLFW examples are built
 along with the library.
 
@@ -188,12 +194,6 @@ systems.
 context creation API.  Note that EGL is not yet provided on all supported
 platforms.
 
-`GLFW_CLIENT_LIBRARY` determines which client API library to use.  If set to
-`opengl` the OpenGL library is used, if set to `glesv1` for the OpenGL ES 1.x
-library is used, or if set to `glesv2` the OpenGL ES 2.0 library is used.  The
-selected library and its header files must be present on the system for this to
-work.
-
 
 ## Installing GLFW
 
@@ -212,6 +212,7 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
                    been flipped
  - [Cocoa] Bugfix: The `GLFW_KEY_F13` key was reported as
                    `GLFW_KEY_PRINT_SCREEN`
+ - [X11] Added setting of the `WM_CLASS` property to the initial window title
 
 
 ## Contact
