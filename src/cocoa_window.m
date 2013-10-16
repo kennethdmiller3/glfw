@@ -58,8 +58,13 @@ static void enterFullscreenMode(_GLFWwindow* window)
 
     _glfwSetVideoMode(window->monitor, &window->videoMode);
 
+	NSDictionary* options = [NSDictionary dictionaryWithObjectsAndKeys:
+                                [NSNumber numberWithBool:NO],
+                                NSFullScreenModeAllScreens,
+                                nil];
+
     [window->ns.view enterFullScreenMode:window->monitor->ns.screen
-                             withOptions:nil];
+                             withOptions:options];
 }
 
 // Leave fullscreen mode
@@ -519,7 +524,7 @@ static int translateKey(unsigned int key)
 - (void)otherMouseDown:(NSEvent *)event
 {
     _glfwInputMouseClick(window,
-                         [event buttonNumber],
+                         (int) [event buttonNumber],
                          GLFW_PRESS,
                          translateFlags([event modifierFlags]));
 }
@@ -532,7 +537,7 @@ static int translateKey(unsigned int key)
 - (void)otherMouseUp:(NSEvent *)event
 {
     _glfwInputMouseClick(window,
-                         [event buttonNumber],
+                         (int) [event buttonNumber],
                          GLFW_RELEASE,
                          translateFlags([event modifierFlags]));
 }
@@ -783,7 +788,8 @@ static void createMenuBar(void)
 
     // Prior to Snow Leopard, we need to use this oddly-named semi-private API
     // to get the application menu working properly.
-    [NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu];
+    SEL setAppleMenuSelector = NSSelectorFromString(@"setAppleMenu:");
+    [NSApp performSelector:setAppleMenuSelector withObject:appMenu];
 }
 
 #endif /* _GLFW_USE_MENUBAR */
@@ -852,7 +858,12 @@ static GLboolean createWindow(_GLFWwindow* window,
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
     if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
+    {
         [window->ns.view setWantsBestResolutionOpenGLSurface:YES];
+
+        if (wndconfig->resizable)
+            [window->ns.object setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+    }
 #endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
 
     [window->ns.object setTitle:[NSString stringWithUTF8String:wndconfig->title]];
@@ -1050,6 +1061,8 @@ void _glfwPlatformWaitEvents(void)
 
 void _glfwPlatformSetCursorPos(_GLFWwindow* window, double x, double y)
 {
+    setModeCursor(window, window->cursorMode);
+
     if (window->monitor)
     {
         CGDisplayMoveCursorToPoint(window->monitor->ns.displayID,

@@ -388,10 +388,21 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
             if (focused && iconified)
             {
-                // This is a workaround for window iconification using the
-                // taskbar leading to windows being told they're focused and
-                // iconified and then never told they're defocused
-                focused = FALSE;
+                if (window->iconified && _glfw.focusedWindow != window)
+                {
+                    // This is a workaround for window restoration using the
+                    // Win+D hot key leading to windows being told they're
+                    // focused and iconified and then never told they're
+                    // restored
+                    iconified = FALSE;
+                }
+                else
+                {
+                    // This is a workaround for window iconification using the
+                    // taskbar leading to windows being told they're focused and
+                    // iconified and then never told they're defocused
+                    focused = FALSE;
+                }
             }
 
             if (!focused && _glfw.focusedWindow == window)
@@ -654,8 +665,11 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SIZE:
         {
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
+            if (window->cursorMode == GLFW_CURSOR_DISABLED &&
+                _glfw.focusedWindow == window)
+            {
                 updateClipRect(window);
+            }
 
             _glfwInputFramebufferSize(window, LOWORD(lParam), HIWORD(lParam));
             _glfwInputWindowSize(window, LOWORD(lParam), HIWORD(lParam));
@@ -664,8 +678,11 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_MOVE:
         {
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
+            if (window->cursorMode == GLFW_CURSOR_DISABLED &&
+                _glfw.focusedWindow == window)
+            {
                 updateClipRect(window);
+            }
 
             _glfwInputWindowPos(window, LOWORD(lParam), HIWORD(lParam));
             return 0;
@@ -679,8 +696,8 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SETCURSOR:
         {
-            if (window->cursorMode == GLFW_CURSOR_HIDDEN &&
-                window->win32.handle == GetForegroundWindow() &&
+            if (window->cursorMode != GLFW_CURSOR_NORMAL &&
+                _glfw.focusedWindow == window &&
                 LOWORD(lParam) == HTCLIENT)
             {
                 SetCursor(NULL);

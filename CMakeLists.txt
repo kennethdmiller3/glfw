@@ -282,23 +282,15 @@ if (_GLFW_GLX)
 
         # Check for dlopen support as a fallback
 
-        find_library(DL_LIBRARY dl)
-        mark_as_advanced(DL_LIBRARY)
-        if (DL_LIBRARY)
-            set(CMAKE_REQUIRED_LIBRARIES ${DL_LIBRARY})
-        else()
-            set(CMAKE_REQUIRED_LIBRARIES "")
-        endif()
-
+        set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_DL_LIBS})
         check_function_exists(dlopen _GLFW_HAS_DLOPEN)
-
         if (NOT _GLFW_HAS_DLOPEN)
             message(FATAL_ERROR "No entry point retrieval mechanism found")
         endif()
 
-        if (DL_LIBRARY)
-            list(APPEND glfw_LIBRARIES ${DL_LIBRARY})
-            set(GLFW_PKG_LIBS "${GLFW_PKG_LIBS} -ldl")
+        if (CMAKE_DL_LIBS)
+            list(APPEND glfw_LIBRARIES ${CMAKE_DL_LIBS})
+            set(GLFW_PKG_LIBS "${GLFW_PKG_LIBS} -l${CMAKE_DL_LIBS}")
         endif()
     endif()
 
@@ -356,13 +348,15 @@ if (_GLFW_COCOA AND _GLFW_NSGL)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(IOKIT_FRAMEWORK IOKit)
     find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(CORE_VIDEO_FRAMEWORK CoreVideo)
     list(APPEND glfw_LIBRARIES ${COCOA_FRAMEWORK}
                                ${OPENGL_gl_LIBRARY}
                                ${IOKIT_FRAMEWORK}
-                               ${CORE_FOUNDATION_FRAMEWORK})
+                               ${CORE_FOUNDATION_FRAMEWORK}
+                               ${CORE_VIDEO_FRAMEWORK})
 
     set(GLFW_PKG_DEPS "")
-    set(GLFW_PKG_LIBS "-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation")
+    set(GLFW_PKG_LIBS "-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation -framework CoreVideo")
 endif()
 
 #--------------------------------------------------------------------

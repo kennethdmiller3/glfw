@@ -208,10 +208,25 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
 
 ## Changelog
 
- - [Cocoa] Bugfix: The `GLFW_KEY_GRAVE_ACCENT` and `GLFW_KEY_WORLD_1` keys had
-                   been flipped
+ - Renamed configuration header to `glfw_config.h` to avoid conflicts
+ - Generated file `glfw3.pc` did not respect the LIB\_SUFFIX CMake option
+ - [Win32] Bugfix: Restoring windows using the Win+D hot key did not trigger the
+                   focus callback
+ - [Win32] Bugfix: The disabled cursor mode clip rectangle was updated for
+                   unfocused windows
+ - [Cocoa] Added dependency on CoreVideo framework for refresh rate retrieval
+ - [Cocoa] Enabled Lion full screen for resizable windowed mode windows
+ - [Cocoa] Bugfix: The `GLFW_KEY_GRAVE_ACCENT` key was reported as
+                   `GLFW_KEY_WORLD_1` and vice versa
  - [Cocoa] Bugfix: The `GLFW_KEY_F13` key was reported as
                    `GLFW_KEY_PRINT_SCREEN`
+ - [Cocoa] Bugfix: Implicit conversion from `NSUInteger` to int caused warnings
+                   with Xcode 5
+ - [Cocoa] Bugfix: Use of undeclared selectors with `@selector` caused warnings
+                   with Xcode 5
+ - [Cocoa] Bugfix: The cursor remained visible if moved onto client area after
+                   having been set to hidden outside it
+ - [Cocoa] Bugfix: The refresh rate was zero for all modes of certain monitors
  - [X11] Added setting of the `WM_CLASS` property to the initial window title
 
 
@@ -251,6 +266,7 @@ skills.
  - Doug Binks
  - blanco
  - Lambert Clara
+ - Andrew Corrigan
  - Noel Cower
  - Jarrod Davis
  - Olivier Delannoy
@@ -286,9 +302,11 @@ skills.
  - Pierre Moulon
  - Julian Møller
  - Ozzy
+ - Andri Pálsson
  - Peoro
  - Braden Pellett
  - Arturo J. Pérez
+ - Pieroman
  - Jorge Rodriguez
  - Ed Ropple
  - Riku Salminen
@@ -296,6 +314,7 @@ skills.
  - Matt Sealey
  - SephiRok
  - Steve Sexton
+ - Systemcluster
  - Dmitri Shuralyov
  - Daniel Skorupski
  - Bradley Smith
@@ -306,6 +325,7 @@ skills.
  - TTK-Bandit
  - Sergey Tikhomirov
  - Samuli Tuomola
+ - urraka
  - Jari Vetoniemi
  - Simon Voordouw
  - Torsten Walluhn
