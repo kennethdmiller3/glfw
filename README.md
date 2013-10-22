@@ -16,7 +16,12 @@ If you are new to GLFW, you may find the
 the GLFW 3 API.
 
 
-## Compiling GLFW
+## Building GLFW
+
+These are the build instructions for the GLFW library itself.  For information
+on how to build programs that use GLFW, see the [Building programs using
+GLFW](http://www.glfw.org/docs/latest/build.html) guide.
+
 
 ### Dependencies
 
@@ -30,19 +35,19 @@ Windows and OS X from the [CMake website](http://www.cmake.org/).
 Additional dependencies are listed below.
 
 
-#### Visual C++ on Windows
+#### Dependencies using Visual C++ on Windows
 
 The Microsoft Platform SDK that is installed along with Visual C++ contains all
 the necessary headers, link libraries and tools except for CMake.
 
 
-#### MinGW or MinGW-w64 on Windows
+#### Dependencies with MinGW or MinGW-w64 on Windows
 
-These packages contain all the necessary headers, link libraries and tools
-except for CMake.
+Both the MinGW and the MinGW-w64 packages contain all the necessary headers,
+link libraries and tools except for CMake.
 
 
-#### MinGW or MinGW-w64 cross-compilation
+#### Dependencies using MinGW or MinGW-w64 cross-compilation
 
 Both Cygwin and many Linux distributions have MinGW or MinGW-w64 packages.  For
 example, Cygwin has the `mingw64-i686-gcc` and `mingw64-x86_64-gcc` packages
@@ -68,27 +73,28 @@ For more details see the article
 the CMake wiki.
 
 
-#### Xcode on OS X
+#### Dependencies using Xcode on OS X
 
 Xcode contains all necessary tools except for CMake.  The necessary headers and
 libraries are included in the core OS frameworks.  Xcode can be downloaded from
-the Mac App Store.
+the Mac App Store or from the ADC Member Center.
 
 
-#### Unix-like systems with X11
+#### Dependencies using Linux and X11
 
 To compile GLFW for X11, you need to have the X11 and OpenGL header packages
 installed, as well as the basic development tools like GCC and make.  For
 example, on Ubuntu and other distributions based on Debian GNU/Linux, you need
 to install the `xorg-dev` and `libglu1-mesa-dev` packages.  The former pulls in
 all X.org header packages and the latter pulls in the Mesa OpenGL and GLU
-packages.  Note that using header files and libraries from Mesa during
-compilation *will not* tie your binaries to the Mesa implementation of OpenGL.
+packages.  GLFW itself doesn't need or use GLU, but some of the examples do.
+Note that using header files and libraries from Mesa during compilation *will
+not* tie your binaries to the Mesa implementation of OpenGL.
 
 
-### Generating with CMake
+### Generating files with CMake
 
-Once you have all necessary dependencies, it is time to generate the project
+Once you have all necessary dependencies it is time to generate the project
 files or makefiles for your development environment.  CMake needs to know two
 paths for this: the path to the source directory and the target path for the
 generated files and compiled binaries.  If these are the same, it is called an
@@ -98,7 +104,7 @@ One of several advantages of out-of-tree builds is that you can generate files
 and compile for different development environments using a single source tree.
 
 
-#### Using CMake from the command-line
+#### Generating files with the CMake command-line tool
 
 To make an in-tree build, enter the root directory of the GLFW source tree and
 run CMake.  The current directory is used as target path, while the path
@@ -117,7 +123,7 @@ argument.
     cmake ..
 
 
-#### Using the CMake GUI
+#### Generating files with the CMake GUI
 
 If you are using the GUI version, choose the root of the GLFW source tree as
 source location and the same directory or another, empty directory as the
@@ -137,7 +143,7 @@ Some package systems like Ubuntu and other distributions based on Debian
 GNU/Linux have this tool in a separate `cmake-curses-gui` package.
 
 
-#### Shared options
+#### Shared CMake options
 
 `BUILD_SHARED_LIBS` determines whether GLFW is built as a static
 library or as a DLL / shared library / dynamic library.
@@ -159,7 +165,7 @@ along with the library.
 built along with the library.
 
 
-#### OS X specific options
+#### OS X specific CMake options
 
 `GLFW_USE_CHDIR` determines whether `glfwInit` changes the current
 directory of bundled applications to the `Contents/Resources` directory.
@@ -170,7 +176,7 @@ directory of bundled applications to the `Contents/Resources` directory.
 `GLFW_BUILD_UNIVERSAL` determines whether to build Universal Binaries.
 
 
-#### Windows specific options
+#### Windows specific CMake options
 
 `USE_MSVC_RUNTIME_LIBRARY_DLL` determines whether to use the DLL version or the
 static library version of the Visual C++ runtime library.  If set to `ON`, the
@@ -188,7 +194,7 @@ symbol, which forces the use of the high-performance GPU on nVidia Optimus
 systems.
 
 
-#### EGL specific options
+#### EGL specific CMake options
 
 `GLFW_USE_EGL` determines whether to use EGL instead of the platform-specific
 context creation API.  Note that EGL is not yet provided on all supported
@@ -198,7 +204,11 @@ platforms.
 ## Installing GLFW
 
 A rudimentary installation target is provided for all supported platforms via
-CMake.
+CMake.  If you are building from the command-line, use the `install` target.
+
+    sudo make install
+
+If you are using an IDE, run the generated install target from the IDE.
 
 
 ## Using GLFW
@@ -209,7 +219,8 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
 ## Changelog
 
  - Renamed configuration header to `glfw_config.h` to avoid conflicts
- - Generated file `glfw3.pc` did not respect the LIB\_SUFFIX CMake option
+ - Bugfix: The `glfw3.pc` file did not respect the `LIB_SUFFIX` CMake option
+ - [Win32] Bugfix: Removed joystick axis value negation left over from GLFW 2
  - [Win32] Bugfix: Restoring windows using the Win+D hot key did not trigger the
                    focus callback
  - [Win32] Bugfix: The disabled cursor mode clip rectangle was updated for
@@ -227,7 +238,12 @@ See the [GLFW documentation](http://www.glfw.org/docs/latest/).
  - [Cocoa] Bugfix: The cursor remained visible if moved onto client area after
                    having been set to hidden outside it
  - [Cocoa] Bugfix: The refresh rate was zero for all modes of certain monitors
+ - [Cocoa] Bugfix: The `install_name` field of the dynamic library was not set
+ - [Cocoa] Bugfix: Full screen windows were never reported as having focus
+ - [Cocoa] Bugfix: A superfluous I/O flag test prevented video modes from being
+                   listed for Thunderbolt monitor
  - [X11] Added setting of the `WM_CLASS` property to the initial window title
+ - [X11] Bugfix: Removed joystick axis value negation left over from GLFW 2
 
 
 ## Contact
