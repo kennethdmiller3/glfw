@@ -129,12 +129,14 @@ static GLboolean createWindow(_GLFWwindow* window,
         if (wndconfig->monitor == NULL)
         {
             // HACK: This is a workaround for windows without a background pixel
-            // not getting any decorations on certain older versions of Compiz
-            // running on Intel hardware
+            //       not getting any decorations on certain older versions of
+            //       Compiz running on Intel hardware
             wa.background_pixel = BlackPixel(_glfw.x11.display,
                                              _glfw.x11.screen);
             wamask |= CWBackPixel;
         }
+
+        _glfwGrabXErrorHandler();
 
         window->x11.handle = XCreateWindow(_glfw.x11.display,
                                            _glfw.x11.root,
@@ -147,12 +149,12 @@ static GLboolean createWindow(_GLFWwindow* window,
                                            wamask,
                                            &wa);
 
+        _glfwReleaseXErrorHandler();
+
         if (!window->x11.handle)
         {
-            // TODO: Handle all the various error codes here and translate them
-            // to GLFW errors
-
-            _glfwInputError(GLFW_PLATFORM_ERROR, "X11: Failed to create window");
+            _glfwInputXError(GLFW_PLATFORM_ERROR,
+                             "X11: Failed to create window");
             return GL_FALSE;
         }
 
@@ -256,6 +258,14 @@ static GLboolean createWindow(_GLFWwindow* window,
             hints->flags |= PPosition;
             _glfwPlatformGetMonitorPos(wndconfig->monitor, &hints->x, &hints->y);
         }
+        else
+        {
+            // HACK: Explicitly setting PPosition to any value causes some WMs,
+            //       notably Compiz and Metacity, to honor the position of
+            //       unmapped windows set by XMoveWindow
+            hints->flags |= PPosition;
+            hints->x = hints->y = 0;
+        }
 
         if (!wndconfig->resizable)
         {
@@ -270,7 +280,7 @@ static GLboolean createWindow(_GLFWwindow* window,
 
     // Set ICCCM WM_CLASS property
     // HACK: Until a mechanism for specifying the application name is added, the
-    // initial window title is used as the window class name
+    //       initial window title is used as the window class name
     if (strlen(wndconfig->title))
     {
         XClassHint* hint = XAllocClassHint();

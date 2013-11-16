@@ -402,8 +402,8 @@ GLboolean _glfwRefreshContextAttribs(void)
             else if (glfwExtensionSupported("GL_ARB_debug_output"))
             {
                 // HACK: This is a workaround for older drivers (pre KHR_debug)
-                // not setting the debug bit in the context flags for debug
-                // contexts
+                //       not setting the debug bit in the context flags for
+                //       debug contexts
                 window->glDebug = GL_TRUE;
             }
         }
@@ -425,7 +425,7 @@ GLboolean _glfwRefreshContextAttribs(void)
         if (glfwExtensionSupported("GL_ARB_robustness"))
         {
             // NOTE: We avoid using the context flags for detection, as they are
-            // only present from 3.0 while the extension applies from 1.1
+            //       only present from 3.0 while the extension applies from 1.1
 
             GLint strategy;
             glGetIntegerv(GL_RESET_NOTIFICATION_STRATEGY_ARB, &strategy);
@@ -442,7 +442,7 @@ GLboolean _glfwRefreshContextAttribs(void)
         if (glfwExtensionSupported("GL_EXT_robustness"))
         {
             // NOTE: The values of these constants match those of the OpenGL ARB
-            // one, so we can reuse them here
+            //       one, so we can reuse them here
 
             GLint strategy;
             glGetIntegerv(GL_RESET_NOTIFICATION_STRATEGY_ARB, &strategy);
@@ -566,7 +566,7 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
         return GL_FALSE;
     }
 
-    if (extension == NULL || *extension == '\0')
+    if (!extension || *extension == '\0')
     {
         _glfwInputError(GLFW_INVALID_VALUE, NULL);
         return GL_FALSE;
@@ -577,11 +577,15 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
         // Check if extension is in the old style OpenGL extensions string
 
         extensions = glGetString(GL_EXTENSIONS);
-        if (extensions != NULL)
+        if (!extensions)
         {
-            if (_glfwStringInExtensionString(extension, extensions))
-                return GL_TRUE;
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "Failed to retrieve extension string");
+            return GL_FALSE;
         }
+
+        if (_glfwStringInExtensionString(extension, extensions))
+            return GL_TRUE;
     }
 #if defined(_GLFW_USE_OPENGL)
     else
@@ -595,11 +599,16 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
 
         for (i = 0;  i < count;  i++)
         {
-             if (strcmp((const char*) window->GetStringi(GL_EXTENSIONS, i),
-                         extension) == 0)
-             {
-                 return GL_TRUE;
-             }
+            const char* en = (const char*) window->GetStringi(GL_EXTENSIONS, i);
+            if (!en)
+            {
+                _glfwInputError(GLFW_PLATFORM_ERROR,
+                                "Failed to retrieve extension string %i", i);
+                return GL_FALSE;
+            }
+
+            if (strcmp(en, extension) == 0)
+                return GL_TRUE;
         }
     }
 #endif // _GLFW_USE_OPENGL
