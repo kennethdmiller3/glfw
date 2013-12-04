@@ -33,9 +33,13 @@ guide in the GLFW documentation.
 
  - Added the `GLFW_BUILD_DOCS` CMake option for controlling whether the
    documentation is built
+ - Added the `_GLFW_USE_CONFIG_H` configuration macro for controlling whether to
+   include the configuration header
+ - Moved version number macro to `internal.h` for easier manual compilation
  - Renamed configuration header to `glfw_config.h` to avoid conflicts
  - Bugfix: The `glfw3.pc` file did not respect the `LIB_SUFFIX` CMake option
  - Bugfix: The `joysticks` test would segfault if a controller had no axes
+ - [Win32] Allowed swap interval to be explicitly set to zero on DWM systems
  - [Win32] Bugfix: Removed joystick axis value negation left over from GLFW 2
  - [Win32] Bugfix: Restoring windows using the Win+D hot key did not trigger the
                    focus callback
@@ -68,6 +72,7 @@ guide in the GLFW documentation.
  - [Cocoa] Bugfix: Controllers were reported as having zero buttons and axes
  - [Cocoa] Bugfix: Removed joystick axis value negation left over from GLFW 2
  - [X11] Added setting of the `WM_CLASS` property to the initial window title
+ - [X11] Added support for `_NET_WM_BYPASS_COMPOSITOR`
  - [X11] Bugfix: Removed joystick axis value negation left over from GLFW 2
  - [X11] Bugfix: The position of hidden windows was ignored by Metacity
                  and Compiz
